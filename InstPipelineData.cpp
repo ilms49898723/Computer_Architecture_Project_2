@@ -32,4 +32,12 @@ InstDataBin InstPipelineData::getInst() const {
     return inst;
 }
 
+void InstPipelineData::setData(const unsigned& data) {
+    this->data = data;
+}
+
+unsigned InstPipelineData::getData() const {
+    return this->data;
+}
+
 } /* namespace lb */

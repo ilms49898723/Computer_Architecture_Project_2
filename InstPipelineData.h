@@ -28,6 +28,10 @@ public:
 
     InstDataBin getInst() const;
 
+    void setData(const unsigned& data);
+
+    unsigned getData() const;
+
 private:
     InstDataBin inst;
     unsigned data;
