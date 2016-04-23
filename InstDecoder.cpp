@@ -9,7 +9,7 @@
 
 namespace lb {
 
-InstDataStr InstDecoder::decodeInstStr(const unsigned &src) {
+InstDataStr InstDecoder::decodeInstStr(const unsigned& src) {
     unsigned opCode;
     unsigned rs, rt, rd;
     unsigned c;
@@ -77,7 +77,7 @@ InstDataStr InstDecoder::decodeInstStr(const unsigned &src) {
     }
 }
 
-InstDataBin InstDecoder::decodeInstBin(const unsigned &src) {
+InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
     unsigned opCode;
     unsigned rs, rt, rd;
     unsigned c;

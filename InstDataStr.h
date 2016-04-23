@@ -35,19 +35,19 @@ public:
 
     std::string getFunct() const;
 
-    void setInstType(const InstType &val);
+    void setInstType(const InstType& val);
 
-    void setOpCode(const std::string &val);
+    void setOpCode(const std::string& val);
 
-    void setRs(const std::string &val);
+    void setRs(const std::string& val);
 
-    void setRt(const std::string &val);
+    void setRt(const std::string& val);
 
-    void setRd(const std::string &val);
+    void setRd(const std::string& val);
 
-    void setC(const std::string &val);
+    void setC(const std::string& val);
 
-    void setFunct(const std::string &val);
+    void setFunct(const std::string& val);
 
     std::string toString() const;
 

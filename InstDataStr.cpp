@@ -58,31 +58,31 @@ std::string InstDataStr::getFunct() const {
     return funct;
 }
 
-void InstDataStr::setInstType(const InstType &val) {
+void InstDataStr::setInstType(const InstType& val) {
     instType = val;
 }
 
-void InstDataStr::setOpCode(const std::string &val) {
+void InstDataStr::setOpCode(const std::string& val) {
     opCode = val;
 }
 
-void InstDataStr::setRs(const std::string &val) {
+void InstDataStr::setRs(const std::string& val) {
     rs = val;
 }
 
-void InstDataStr::setRt(const std::string &val) {
+void InstDataStr::setRt(const std::string& val) {
     rt = val;
 }
 
-void InstDataStr::setRd(const std::string &val) {
+void InstDataStr::setRd(const std::string& val) {
     rd = val;
 }
 
-void InstDataStr::setC(const std::string &val) {
+void InstDataStr::setC(const std::string& val) {
     c = val;
 }
 
-void InstDataStr::setFunct(const std::string &val) {
+void InstDataStr::setFunct(const std::string& val) {
     funct = val;
 }
 

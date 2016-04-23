@@ -15,7 +15,7 @@ InstMemory::InstMemory() {
     memset(mem, 0, sizeof(unsigned char) * 1024);
 }
 
-InstMemory::InstMemory(const unsigned &initPc) {
+InstMemory::InstMemory(const unsigned& initPc) {
     pc = initPc;
     memset(reg, 0, sizeof(unsigned) * 32);
     memset(mem, 0, sizeof(unsigned char) * 1024);
@@ -25,13 +25,13 @@ InstMemory::~InstMemory() {
 
 }
 
-void InstMemory::init(const unsigned &initPc) {
+void InstMemory::init(const unsigned& initPc) {
     pc = initPc;
     memset(reg, 0, sizeof(unsigned) * 32);
     memset(mem, 0, sizeof(unsigned char) * 1024);
 }
 
-unsigned InstMemory::getRegValue(const unsigned &addr, const InstMemLen &type) const {
+unsigned InstMemory::getRegValue(const unsigned& addr, const InstMemLen& type) const {
     if (type == InstMemLen::WORD) {
         return reg[addr];
     }
@@ -43,7 +43,7 @@ unsigned InstMemory::getRegValue(const unsigned &addr, const InstMemLen &type) c
     }
 }
 
-void InstMemory::setRegValue(const unsigned &addr, const unsigned &val, const InstMemLen &type) {
+void InstMemory::setRegValue(const unsigned& addr, const unsigned& val, const InstMemLen& type) {
     if (addr == 0u) {
         return;
     }
@@ -58,7 +58,7 @@ void InstMemory::setRegValue(const unsigned &addr, const unsigned &val, const In
     }
 }
 
-unsigned InstMemory::getMemValue(const unsigned &addr, const InstMemLen &type) const {
+unsigned InstMemory::getMemValue(const unsigned& addr, const InstMemLen& type) const {
     if (type == InstMemLen::WORD) {
         return (mem[addr] << 24) | (mem[addr + 1] << 16) | (mem[addr + 2] << 8) | mem[addr + 3];
     }
@@ -70,7 +70,7 @@ unsigned InstMemory::getMemValue(const unsigned &addr, const InstMemLen &type) c
     }
 }
 
-void InstMemory::setMemValue(const unsigned &addr, const unsigned &val, const InstMemLen &type) {
+void InstMemory::setMemValue(const unsigned& addr, const unsigned& val, const InstMemLen& type) {
     if (type == InstMemLen::WORD) {
         mem[addr] = static_cast<unsigned char>((val >> 24) & 0xFFu);
         mem[addr + 1] = static_cast<unsigned char>((val >> 16) & 0xFFu);
@@ -90,7 +90,7 @@ unsigned InstMemory::getPc() const {
     return pc;
 }
 
-void InstMemory::setPc(const unsigned &val) {
+void InstMemory::setPc(const unsigned& val) {
     pc = val;
 }
 

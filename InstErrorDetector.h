@@ -24,17 +24,17 @@ namespace lb {
 class InstErrorDetector {
 public:
     // reg: addr to check
-    static bool isRegWritable(const unsigned &reg);
+    static bool isRegWritable(const unsigned& reg);
 
     // check overflow
     // check src0 op src1, where op == ADD or SUB
-    static bool isOverflowed(const int &src0, const int &src1, const InstOpType &op);
+    static bool isOverflowed(const int& src0, const int& src1, const InstOpType& op);
 
     // check memory address(should between 0 to 1023)
-    static bool isValidMemoryAddr(const unsigned &addr, const InstMemLen &type);
+    static bool isValidMemoryAddr(const unsigned& addr, const InstMemLen& type);
 
     // check misaligned address
-    static bool isAlignedAddr(const unsigned &addr, const InstMemLen &type);
+    static bool isAlignedAddr(const unsigned& addr, const InstMemLen& type);
 };
 
 } /* namespace lb */

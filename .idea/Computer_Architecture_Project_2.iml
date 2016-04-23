@@ -8,19 +8,21 @@
       <sourceFolder url="file://$MODULE_DIR$/InstDataBin.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/InstDecoder.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/InstDataBin.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/InstPipelineData.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/InstDataStr.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/InstImageReader.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/InstMemory.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/InstEnum.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/InstDataStr.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/InstPipelineData.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/InstUtility.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/InstDecoder.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/InstMemory.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/InstImageReader.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/InstSimulator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/InstSimulator.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/InstMemory.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/main.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/InstImageReader.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/InstLookUp.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/InstUtility.cpp" isTestSource="false" />
     </content>

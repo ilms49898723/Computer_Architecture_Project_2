@@ -25,6 +25,6 @@ set(SOURCE_FILES
     InstSimulator.h
     InstUtility.cpp
     InstUtility.h
-    main.cpp)
+    main.cpp InstPipelineData.cpp InstPipelineData.h)
 
 add_executable(Computer_Architecture_Project_2 ${SOURCE_FILES})

@@ -9,11 +9,11 @@
 
 namespace lb {
 
-bool InstErrorDetector::isRegWritable(const unsigned &reg) {
+bool InstErrorDetector::isRegWritable(const unsigned& reg) {
     return reg != 0u;
 }
 
-bool InstErrorDetector::isOverflowed(const int &src0, const int &src1, const InstOpType &op) {
+bool InstErrorDetector::isOverflowed(const int& src0, const int& src1, const InstOpType& op) {
     int a = src0;
     int b = src1;
     if (op == InstOpType::SUB) {
@@ -26,7 +26,7 @@ bool InstErrorDetector::isOverflowed(const int &src0, const int &src1, const Ins
     return signA * signB >= 0 && signA * signR < 0;
 }
 
-bool InstErrorDetector::isValidMemoryAddr(const unsigned &addr, const InstMemLen &type) {
+bool InstErrorDetector::isValidMemoryAddr(const unsigned& addr, const InstMemLen& type) {
     if (type == InstMemLen::WORD) {
         return addr < 1024u && (addr + 4 - 1) < 1024u;
     }
@@ -38,7 +38,7 @@ bool InstErrorDetector::isValidMemoryAddr(const unsigned &addr, const InstMemLen
     }
 }
 
-bool InstErrorDetector::isAlignedAddr(const unsigned &addr, const InstMemLen &type) {
+bool InstErrorDetector::isAlignedAddr(const unsigned& addr, const InstMemLen& type) {
     if (type == InstMemLen::WORD) {
         return (addr % 4) == 0;
     }

@@ -10,7 +10,7 @@
 #include "InstSimulator.h"
 #include "InstImageReader.h"
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     // load iimage, dimage
     unsigned iLen, dLen;
     unsigned pc, sp;
@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
     iLen = lb::InstImageReader::readImageI("iimage.bin", inst, &pc);
     dLen = lb::InstImageReader::readImageD("dimage.bin", memory, &sp);
     // simulate
-    FILE *snapShot, *errorDump;
+    FILE* snapShot, * errorDump;
     snapShot = fopen("snapshot.rpt", "w");
     errorDump = fopen("error_dump.rpt", "w");
     if (!snapShot || !errorDump) {
