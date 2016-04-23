@@ -91,7 +91,12 @@ void InstDataBin::setInstName(const unsigned &val) {
         instName = "";
     }
     else if (instType == InstType::R) {
-        instName = toUpperString(InstLookUp::functLookUp(val));
+        if (inst == 0u) {
+            instName = "NOP";
+        }
+        else {
+            instName = toUpperString(InstLookUp::functLookUp(val));
+        }
     }
     else {
         instName = toUpperString(InstLookUp::opCodeLookUp(val));
