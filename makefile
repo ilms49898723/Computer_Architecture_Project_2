@@ -1,23 +1,27 @@
-# makefile for Computer_Architecture_Project_1
+# makefile for Computer_Architecture_Project_2
 
 CC := g++
-CFLAGS := -std=c++11 -O3 -Wall
+
+CXXFLAGS := -std=c++11 -Os -Wall
+
 OBJS := InstDataBin.o InstDataStr.o InstDecoder.o InstErrorDetector.o \
         InstImageReader.o InstLookUp.o InstMemory.o InstSimulator.o \
         InstUtility.o main.o
+
+OUTPUT := pipeline
 
 .SUFFIXS:
 .SUFFIXS: .cpp .o
 
 .PHONY: clean
 
-all: single_cycle
+all: pipeline
 
-single_cycle: ${OBJS}
-	${CC} ${CFLAGS} -o $@ ${OBJS}
+pipeline: ${OBJS}
+	${CC} ${CXXFLAGS} -o $@ ${OBJS}
 
 .cpp.o:
-	${CC} ${CFLAGS} -c $<
+	${CC} ${CXXFLAGS} -c $<
 
 clean:
-	-rm -f *.o single_cycle
+	-rm -f *.o ${OUTPUT}
