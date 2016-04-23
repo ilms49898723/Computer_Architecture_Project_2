@@ -60,13 +60,13 @@ void InstSimulator::simulate(FILE* snapshot, FILE* errorDump) {
         if (!checkInst(current)) {
             break;
         }
-        if (current.getType() == InstType::R) {
+        if (current.getInstType() == InstType::R) {
             simulateTypeR(current);
         }
-        else if (current.getType() == InstType::I) {
+        else if (current.getInstType() == InstType::I) {
             simulateTypeI(current);
         }
-        else if (current.getType() == InstType::J) {
+        else if (current.getInstType() == InstType::J) {
             simulateTypeJ(current);
         }
         dumpMemoryInfo(cycle);
@@ -452,7 +452,7 @@ void InstSimulator::simulateTypeJ(const InstDataBin& inst) {
 }
 
 bool InstSimulator::checkInst(const InstDataBin& inst) {
-    if (inst.getType() == InstType::R) {
+    if (inst.getInstType() == InstType::R) {
         // write $0 error
         if (inst.getFunct() != 0x08u && !isNOP(inst)) { // jr
             detectWriteRegZero(inst.getRd());
@@ -471,7 +471,7 @@ bool InstSimulator::checkInst(const InstDataBin& inst) {
             detectNumberOverflow(rs, rt, InstOpType::SUB);
         }
     }
-    else if (inst.getType() == InstType::I) {
+    else if (inst.getInstType() == InstType::I) {
         // write $0 error
         if (inst.getOpCode() != 0x2Bu && // sw
             inst.getOpCode() != 0x29u && // sh
@@ -591,7 +591,7 @@ bool InstSimulator::checkInst(const InstDataBin& inst) {
             }
         }
     }
-    else if (inst.getType() == InstType::J) {
+    else if (inst.getInstType() == InstType::J) {
         return isAlive;
     }
     else {

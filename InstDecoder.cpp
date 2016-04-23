@@ -35,7 +35,7 @@ InstDataStr InstDecoder::decodeInstStr(const unsigned& src) {
         cStr = toHexString(c);
         functStr = InstLookUp::functLookUp(funct);
         InstDataStr ret;
-        ret.setType(InstType::R);
+        ret.setInstType(InstType::R);
         ret.setOpCode(opCodeStr);
         ret.setRs(rsStr);
         ret.setRt(rtStr);
@@ -48,7 +48,7 @@ InstDataStr InstDecoder::decodeInstStr(const unsigned& src) {
         c = getBitsInRange(src, 0, 26);
         cStr = toHexString(c);
         InstDataStr ret;
-        ret.setType(InstType::J);
+        ret.setInstType(InstType::J);
         ret.setOpCode(opCodeStr);
         ret.setC(cStr);
         return ret;
@@ -56,7 +56,7 @@ InstDataStr InstDecoder::decodeInstStr(const unsigned& src) {
     else if (opCode == 0x3Fu) {
         opCodeStr = InstLookUp::opCodeLookUp(opCode);
         InstDataStr ret;
-        ret.setType(InstType::S);
+        ret.setInstType(InstType::S);
         ret.setOpCode(opCodeStr);
         return ret;
     }
@@ -68,7 +68,7 @@ InstDataStr InstDecoder::decodeInstStr(const unsigned& src) {
         rtStr = InstLookUp::registerLookUpNumber(rt);
         cStr = toHexString(c);
         InstDataStr ret;
-        ret.setType(InstType::I);
+        ret.setInstType(InstType::I);
         ret.setOpCode(opCodeStr);
         ret.setRs(rsStr);
         ret.setRt(rtStr);
@@ -96,7 +96,7 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         c = getBitsInRange(src, 6, 11);
         InstDataBin ret;
         ret.setInst(src);
-        ret.setType(InstType::R);
+        ret.setInstType(InstType::R);
         ret.setOpCode(opCode);
         ret.setRs(rs);
         ret.setRt(rt);
@@ -109,7 +109,7 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         c = getBitsInRange(src, 0, 26);
         InstDataBin ret;
         ret.setInst(src);
-        ret.setType(InstType::J);
+        ret.setInstType(InstType::J);
         ret.setOpCode(opCode);
         ret.setC(c);
         return ret;
@@ -117,7 +117,7 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
     else if (opCode == 0x3Fu) {
         InstDataBin ret;
         ret.setInst(src);
-        ret.setType(InstType::S);
+        ret.setInstType(InstType::S);
         ret.setOpCode(opCode);
         return ret;
     }
@@ -127,7 +127,7 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         c = getBitsInRange(src, 0, 16);
         InstDataBin ret;
         ret.setInst(src);
-        ret.setType(InstType::I);
+        ret.setInstType(InstType::I);
         ret.setOpCode(opCode);
         ret.setRs(rs);
         ret.setRt(rt);
