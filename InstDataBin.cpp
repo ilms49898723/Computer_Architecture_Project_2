@@ -15,6 +15,7 @@ InstDataBin::InstDataBin() {
 }
 
 InstDataBin::~InstDataBin() {
+
 }
 
 InstType InstDataBin::getInstType() const {
@@ -57,35 +58,35 @@ void InstDataBin::setInstType(const InstType &val) {
     instType = val;
 }
 
-void InstDataBin::setOpCode(const unsigned& val) {
+void InstDataBin::setOpCode(const unsigned &val) {
     opCode = val;
 }
 
-void InstDataBin::setRs(const unsigned& val) {
+void InstDataBin::setRs(const unsigned &val) {
     rs = val;
 }
 
-void InstDataBin::setRt(const unsigned& val) {
+void InstDataBin::setRt(const unsigned &val) {
     rt = val;
 }
 
-void InstDataBin::setRd(const unsigned& val) {
+void InstDataBin::setRd(const unsigned &val) {
     rd = val;
 }
 
-void InstDataBin::setC(const unsigned& val) {
+void InstDataBin::setC(const unsigned &val) {
     c = val;
 }
 
-void InstDataBin::setFunct(const unsigned& val) {
+void InstDataBin::setFunct(const unsigned &val) {
     funct = val;
 }
 
-void InstDataBin::setInst(const unsigned& val) {
+void InstDataBin::setInst(const unsigned &val) {
     inst = val;
 }
 
-void InstDataBin::setInstName(const unsigned& val) {
+void InstDataBin::setInstName(const unsigned &val) {
     if (instType == InstType::Undef) {
         instName = "";
     }

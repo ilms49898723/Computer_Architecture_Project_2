@@ -14,6 +14,7 @@ InstSimulator::InstSimulator() {
 }
 
 InstSimulator::~InstSimulator() {
+
 }
 
 void InstSimulator::init() {
@@ -27,7 +28,7 @@ void InstSimulator::init() {
     }
 }
 
-void InstSimulator::loadImageI(const unsigned* src, const unsigned& len, const unsigned& pc) {
+void InstSimulator::loadImageI(const unsigned *src, const unsigned &len, const unsigned &pc) {
     memory.setPc(pc);
     unsigned instSetIdx = pc >> 2;
     for (unsigned i = 0; i < len; ++i) {
@@ -36,7 +37,7 @@ void InstSimulator::loadImageI(const unsigned* src, const unsigned& len, const u
     }
 }
 
-void InstSimulator::loadImageD(const unsigned* src, const unsigned& len, const unsigned& sp) {
+void InstSimulator::loadImageD(const unsigned *src, const unsigned &len, const unsigned &sp) {
     // $sp -> $29
     memory.setRegValue(29, sp, InstMemLen::WORD);
     for (unsigned i = 0; i < len; ++i) {
@@ -44,7 +45,7 @@ void InstSimulator::loadImageD(const unsigned* src, const unsigned& len, const u
     }
 }
 
-void InstSimulator::simulate(FILE* snapshot, FILE* errorDump) {
+void InstSimulator::simulate(FILE *snapshot, FILE *errorDump) {
     this->snapshot = snapshot;
     this->errorDump = errorDump;
     isAlive = true;
@@ -56,7 +57,7 @@ void InstSimulator::simulate(FILE* snapshot, FILE* errorDump) {
         ++cycle;
     }
     while (instSet[currentInstIdx].getOpCode() != 0x3Fu) {
-        InstDataBin& current = instSet[currentInstIdx];
+        InstDataBin &current = instSet[currentInstIdx];
         if (!checkInst(current)) {
             break;
         }
@@ -75,7 +76,7 @@ void InstSimulator::simulate(FILE* snapshot, FILE* errorDump) {
     }
 }
 
-void InstSimulator::dumpMemoryInfo(const int& cycle) {
+void InstSimulator::dumpMemoryInfo(const int &cycle) {
     fprintf(snapshot, "cycle %d\n", cycle);
     for (unsigned i = 0; i < 32; ++i) {
         fprintf(snapshot, "$%02d: 0x%08X\n", i, memory.getRegValue(i, InstMemLen::WORD));
@@ -84,7 +85,7 @@ void InstSimulator::dumpMemoryInfo(const int& cycle) {
     fprintf(snapshot, "\n\n");
 }
 
-void InstSimulator::simulateTypeR(const InstDataBin& inst) {
+void InstSimulator::simulateTypeR(const InstDataBin &inst) {
     switch (inst.getFunct()) {
         case 0x20u: {
             // add, rd = rs + rt
@@ -215,8 +216,8 @@ void InstSimulator::simulateTypeR(const InstDataBin& inst) {
     memory.setPc(memory.getPc() + 4);
 }
 
-void InstSimulator::simulateTypeI(const InstDataBin& inst) {
-    switch(inst.getOpCode()) {
+void InstSimulator::simulateTypeI(const InstDataBin &inst) {
+    switch (inst.getOpCode()) {
         case 0x08u: {
             // addi, rt = rs + c
             int rs, c;
@@ -427,7 +428,7 @@ void InstSimulator::simulateTypeI(const InstDataBin& inst) {
     memory.setPc(memory.getPc() + 4);
 }
 
-void InstSimulator::simulateTypeJ(const InstDataBin& inst) {
+void InstSimulator::simulateTypeJ(const InstDataBin &inst) {
     switch (inst.getOpCode()) {
         case 0x02u: {
             // j, pc = (pc + 4)[31:28] | 4 * c(unsigned)
@@ -451,7 +452,7 @@ void InstSimulator::simulateTypeJ(const InstDataBin& inst) {
     }
 }
 
-bool InstSimulator::checkInst(const InstDataBin& inst) {
+bool InstSimulator::checkInst(const InstDataBin &inst) {
     if (inst.getInstType() == InstType::R) {
         // write $0 error
         if (inst.getFunct() != 0x08u && !isNOP(inst)) { // jr
@@ -608,21 +609,21 @@ bool InstSimulator::isNOP(const InstDataBin &inst) {
            !inst.getFunct();
 }
 
-InstAction InstSimulator::detectWriteRegZero(const unsigned& addr) {
+InstAction InstSimulator::detectWriteRegZero(const unsigned &addr) {
     if (!InstErrorDetector::isRegWritable(addr)) {
         fprintf(errorDump, "In cycle %d: Write $0 Error\n", cycle);
     }
     return InstAction::CONTINUE;
 }
 
-InstAction InstSimulator::detectNumberOverflow(const int& a, const int& b, const InstOpType& op) {
+InstAction InstSimulator::detectNumberOverflow(const int &a, const int &b, const InstOpType &op) {
     if (InstErrorDetector::isOverflowed(a, b, op)) {
         fprintf(errorDump, "In cycle %d: Number Overflow\n", cycle);
     }
     return InstAction::CONTINUE;
 }
 
-InstAction InstSimulator::detectMemAddrOverflow(const unsigned& addr, const InstMemLen& type) {
+InstAction InstSimulator::detectMemAddrOverflow(const unsigned &addr, const InstMemLen &type) {
     if (!InstErrorDetector::isValidMemoryAddr(addr, type)) {
         fprintf(errorDump, "In cycle %d: Address Overflow\n", cycle);
         isAlive = false;
@@ -631,7 +632,7 @@ InstAction InstSimulator::detectMemAddrOverflow(const unsigned& addr, const Inst
     return InstAction::CONTINUE;
 }
 
-InstAction InstSimulator::detectDataMisaligned(const unsigned& addr, const InstMemLen& type) {
+InstAction InstSimulator::detectDataMisaligned(const unsigned &addr, const InstMemLen &type) {
     if (!InstErrorDetector::isAlignedAddr(addr, type)) {
         fprintf(errorDump, "In cycle %d: Misalignment Error\n", cycle);
         isAlive = false;

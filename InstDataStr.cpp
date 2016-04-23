@@ -15,6 +15,7 @@ InstDataStr::InstDataStr() {
 }
 
 InstDataStr::~InstDataStr() {
+
 }
 
 InstType InstDataStr::getInstType() const {
@@ -61,27 +62,27 @@ void InstDataStr::setInstType(const InstType &val) {
     instType = val;
 }
 
-void InstDataStr::setOpCode(const std::string& val) {
+void InstDataStr::setOpCode(const std::string &val) {
     opCode = val;
 }
 
-void InstDataStr::setRs(const std::string& val) {
+void InstDataStr::setRs(const std::string &val) {
     rs = val;
 }
 
-void InstDataStr::setRt(const std::string& val) {
+void InstDataStr::setRt(const std::string &val) {
     rt = val;
 }
 
-void InstDataStr::setRd(const std::string& val) {
+void InstDataStr::setRd(const std::string &val) {
     rd = val;
 }
 
-void InstDataStr::setC(const std::string& val) {
+void InstDataStr::setC(const std::string &val) {
     c = val;
 }
 
-void InstDataStr::setFunct(const std::string& val) {
+void InstDataStr::setFunct(const std::string &val) {
     funct = val;
 }
 
@@ -105,8 +106,8 @@ std::string InstDataStr::toString() const {
             return opCode + " $" + rs + ", " + c;
         }
         else if (opCode == "addi" || opCode == "addiu" || opCode == "lui" ||
-                opCode == "andi" || opCode == "ori" || opCode == "nori" ||
-                opCode == "slti") {
+                 opCode == "andi" || opCode == "ori" || opCode == "nori" ||
+                 opCode == "slti") {
             return opCode + " $" + rt + ", $" + rs + ", " + c;
         }
         else if (opCode == "beq" || opCode == "bne") {

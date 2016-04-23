@@ -102,7 +102,7 @@ const std::string InstLookUp::functLookUpTable[] = {
         "slt"     // 0x30
 };
 
-std::string InstLookUp::opCodeLookUp(const unsigned& src) {
+std::string InstLookUp::opCodeLookUp(const unsigned &src) {
     if (src == 0x3Fu) {
         return "halt";
     }
@@ -112,14 +112,14 @@ std::string InstLookUp::opCodeLookUp(const unsigned& src) {
     return InstLookUp::opCodeLookUpTable[src];
 }
 
-std::string InstLookUp::functLookUp(const unsigned& src) {
+std::string InstLookUp::functLookUp(const unsigned &src) {
     if (src > 0x30u) {
         return "undef";
     }
     return InstLookUp::functLookUpTable[src];
 }
 
-std::string InstLookUp::registerLookUpNumber(const unsigned& src) {
+std::string InstLookUp::registerLookUpNumber(const unsigned &src) {
     if (src > 0x1Fu) {
         return "undef";
     }

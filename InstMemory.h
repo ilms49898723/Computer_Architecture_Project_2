@@ -19,22 +19,31 @@ namespace lb {
 class InstMemory {
 public:
     InstMemory();
-    InstMemory(const unsigned& initPc);
+
+    InstMemory(const unsigned &initPc);
+
     virtual ~InstMemory();
+
     // initialize with pc(default = 0)
-    void init(const unsigned& initPc = 0u);
+    void init(const unsigned &initPc = 0u);
+
     // get reg value at addr
-    unsigned getRegValue(const unsigned& addr, const InstMemLen& type) const;
+    unsigned getRegValue(const unsigned &addr, const InstMemLen &type) const;
+
     // set reg value to addr
-    void setRegValue(const unsigned& addr, const unsigned& val, const InstMemLen& type);
+    void setRegValue(const unsigned &addr, const unsigned &val, const InstMemLen &type);
+
     // get memory value at addr, return as unsigned
-    unsigned getMemValue(const unsigned& addr, const InstMemLen& type) const;
+    unsigned getMemValue(const unsigned &addr, const InstMemLen &type) const;
+
     // set memory value at addr, parameter all passed as unsigned
-    void setMemValue(const unsigned& addr, const unsigned& val, const InstMemLen& type);
+    void setMemValue(const unsigned &addr, const unsigned &val, const InstMemLen &type);
+
     // get pc
     unsigned getPc() const;
+
     // set pc
-    void setPc(const unsigned& val);
+    void setPc(const unsigned &val);
 
 private:
     unsigned char mem[1024];

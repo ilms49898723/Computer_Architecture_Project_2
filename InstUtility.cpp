@@ -15,11 +15,11 @@ std::string toUpperString(std::string val) {
     return val;
 }
 
-int toSigned(const unsigned& src) {
+int toSigned(const unsigned &src) {
     return static_cast<int>(src);
 }
 
-int toSigned(const unsigned& src, const InstMemLen& type) {
+int toSigned(const unsigned &src, const InstMemLen &type) {
     if (type == InstMemLen::WORD) {
         return static_cast<int>(src);
     }
@@ -35,17 +35,17 @@ int toSigned(const unsigned& src, const InstMemLen& type) {
     }
 }
 
-int toSigned(const unsigned& src, const int& bits) {
+int toSigned(const unsigned &src, const int &bits) {
     int var = static_cast<int>(src << (32 - bits));
     int ret = var >> (32 - bits);
     return ret;
 }
 
-unsigned toUnsigned(const int& src) {
+unsigned toUnsigned(const int &src) {
     return static_cast<unsigned>(src);
 }
 
-unsigned getBitsInRange(const unsigned& src, const int& l, const int& r) {
+unsigned getBitsInRange(const unsigned &src, const int &l, const int &r) {
     return (src << (32 - r)) >> (l + (32 - r));
 }
 
