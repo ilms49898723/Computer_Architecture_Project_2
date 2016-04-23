@@ -10,15 +10,15 @@
 namespace lb {
 
 InstDataStr::InstDataStr() {
-    type = InstType::Undef;
+    instType = InstType::Undef;
     opCode = rs = rt = rd = c = funct = "";
 }
 
 InstDataStr::~InstDataStr() {
 }
 
-InstType InstDataStr::getType() const {
-    return type;
+InstType InstDataStr::getInstType() const {
+    return instType;
 }
 
 std::string InstDataStr::getOpCode() const {
@@ -26,21 +26,21 @@ std::string InstDataStr::getOpCode() const {
 }
 
 std::string InstDataStr::getRs() const {
-    if (type == InstType::J || type == InstType::S) {
+    if (instType == InstType::J || instType == InstType::S) {
         return "";
     }
     return rs;
 }
 
 std::string InstDataStr::getRt() const {
-    if (type == InstType::J || type == InstType::S) {
+    if (instType == InstType::J || instType == InstType::S) {
         return "";
     }
     return rt;
 }
 
 std::string InstDataStr::getRd() const {
-    if (type != InstType::R) {
+    if (instType != InstType::R) {
         return "";
     }
     return rd;
@@ -51,14 +51,14 @@ std::string InstDataStr::getC() const {
 }
 
 std::string InstDataStr::getFunct() const {
-    if (type != InstType::R) {
+    if (instType != InstType::R) {
         return "";
     }
     return funct;
 }
 
-void InstDataStr::setType(const InstType& val) {
-    type = val;
+void InstDataStr::setInstType(const InstType &val) {
+    instType = val;
 }
 
 void InstDataStr::setOpCode(const std::string& val) {
@@ -86,7 +86,7 @@ void InstDataStr::setFunct(const std::string& val) {
 }
 
 std::string InstDataStr::toString() const {
-    if (type == InstType::R) {
+    if (instType == InstType::R) {
         if (funct == "jr") {
             return funct + " $" + rs;
         }
@@ -97,7 +97,7 @@ std::string InstDataStr::toString() const {
             return funct + " $" + rd + ", $" + rs + ", $" + rt;
         }
     }
-    else if (type == InstType::I) {
+    else if (instType == InstType::I) {
         if (opCode == "lui") {
             return opCode + " $" + rt + ", " + c;
         }
@@ -116,10 +116,10 @@ std::string InstDataStr::toString() const {
             return opCode + " $" + rt + ", " + c + "($" + rs + ")";
         }
     }
-    else if (type == InstType::J) {
+    else if (instType == InstType::J) {
         return opCode + " " + c;
     }
-    else if (type == InstType::S) {
+    else if (instType == InstType::S) {
         return opCode;
     }
     else {

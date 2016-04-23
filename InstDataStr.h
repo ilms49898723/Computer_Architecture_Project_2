@@ -15,20 +15,18 @@
 namespace lb {
 
 // Data structure to store readable Instruction set using "String"
-// Use getXXX() function to access private members
-
 class InstDataStr {
 public:
     InstDataStr();
     virtual ~InstDataStr();
-    InstType getType() const;
+    InstType getInstType() const;
     std::string getOpCode() const;
     std::string getRs() const;
     std::string getRt() const;
     std::string getRd() const;
     std::string getC() const;
     std::string getFunct() const;
-    void setType(const InstType& val);
+    void setInstType(const InstType &val);
     void setOpCode(const std::string& val);
     void setRs(const std::string &val);
     void setRt(const std::string &val);
@@ -38,7 +36,7 @@ public:
     std::string toString() const;
 
 private:
-    InstType type;
+    InstType instType;
     std::string opCode;
     std::string rs;
     std::string rt;
