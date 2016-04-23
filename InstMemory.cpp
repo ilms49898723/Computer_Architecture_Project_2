@@ -10,13 +10,6 @@
 namespace lb {
 
 InstMemory::InstMemory() {
-    pc = 0u;
-    memset(reg, 0, sizeof(unsigned) * 32);
-    memset(mem, 0, sizeof(unsigned char) * 1024);
-}
-
-InstMemory::InstMemory(const unsigned& initPc) {
-    pc = initPc;
     memset(reg, 0, sizeof(unsigned) * 32);
     memset(mem, 0, sizeof(unsigned char) * 1024);
 }
@@ -25,8 +18,7 @@ InstMemory::~InstMemory() {
 
 }
 
-void InstMemory::init(const unsigned& initPc) {
-    pc = initPc;
+void InstMemory::init() {
     memset(reg, 0, sizeof(unsigned) * 32);
     memset(mem, 0, sizeof(unsigned char) * 1024);
 }
@@ -84,14 +76,6 @@ void InstMemory::setMemValue(const unsigned& addr, const unsigned& val, const In
     else {
         mem[addr] = static_cast<unsigned char>(val & 0xFFu);
     }
-}
-
-unsigned InstMemory::getPc() const {
-    return pc;
-}
-
-void InstMemory::setPc(const unsigned& val) {
-    pc = val;
 }
 
 } /* namespace lb */

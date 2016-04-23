@@ -15,17 +15,15 @@
 
 namespace lb {
 
-// 1024 bytes memory + 32 registers + pc
+// 1024 bytes memory + 32 registers
 class InstMemory {
 public:
     InstMemory();
 
-    InstMemory(const unsigned& initPc);
-
     virtual ~InstMemory();
 
-    // initialize with pc(default = 0)
-    void init(const unsigned& initPc = 0u);
+    // initialize
+    void init();
 
     // get reg value at addr
     unsigned getRegValue(const unsigned& addr, const InstMemLen& type) const;
@@ -39,16 +37,9 @@ public:
     // set memory value at addr, parameter all passed as unsigned
     void setMemValue(const unsigned& addr, const unsigned& val, const InstMemLen& type);
 
-    // get pc
-    unsigned getPc() const;
-
-    // set pc
-    void setPc(const unsigned& val);
-
 private:
     unsigned char mem[1024];
     unsigned reg[32];
-    unsigned pc;
 };
 
 } /* namespace lb */
