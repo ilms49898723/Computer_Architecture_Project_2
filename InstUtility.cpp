@@ -8,6 +8,12 @@
 #include "InstUtility.h"
 
 namespace lb {
+std::string toUpperString(std::string val) {
+    for (unsigned long long i = 0; i < val.length(); ++i) {
+        val[i] = static_cast<char>(toupper(static_cast<int>(val[i])));
+    }
+    return val;
+}
 
 int toSigned(const unsigned& src) {
     return static_cast<int>(src);

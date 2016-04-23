@@ -8,6 +8,7 @@
 #ifndef INSTUTILITY_H_
 #define INSTUTILITY_H_
 
+#include <cctype>
 #include <sstream>
 #include <string>
 #include "InstEnum.h"
@@ -29,6 +30,12 @@ std::string toHexString(const Tp& val) {
     oss << std::showbase << std::hex << val;
     return oss.str();
 }
+
+/**
+ * to upper string
+ * "abc" -> "ABC"
+ */
+std::string toUpperString(std::string val);
 
 // for convenience, only use static_cast<int>
 int toSigned(const unsigned& src);
