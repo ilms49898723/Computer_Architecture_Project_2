@@ -13,31 +13,44 @@ const InstPipelineData InstPipelineData::nop = InstPipelineData(InstDecoder::dec
 
 InstPipelineData::InstPipelineData() {
     this->inst = InstDataBin();
+    this->data = 0u;
+    this->stalled = false;
 }
 
 InstPipelineData::InstPipelineData(const InstDataBin& inst) {
     this->inst = inst;
+    this->data = 0u;
+    this->stalled = false;
 }
 
 InstPipelineData::InstPipelineData(const InstDataBin& inst, const unsigned& data) {
     this->inst = inst;
     this->data = data;
+    this->stalled = false;
 }
 
 InstPipelineData::~InstPipelineData() {
 
 }
 
-InstDataBin InstPipelineData::getInst() const {
-    return inst;
-}
-
 void InstPipelineData::setData(const unsigned& data) {
     this->data = data;
 }
 
+void InstPipelineData::setStalled(const bool& stalled) {
+    this->stalled = stalled;
+}
+
 unsigned InstPipelineData::getData() const {
-    return this->data;
+    return data;
+}
+
+bool InstPipelineData::isStalled() const {
+    return stalled;
+}
+
+InstDataBin InstPipelineData::getInst() const {
+    return inst;
 }
 
 } /* namespace lb */

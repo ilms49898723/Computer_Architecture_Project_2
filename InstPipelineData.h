@@ -26,15 +26,20 @@ public:
 
     virtual ~InstPipelineData();
 
-    InstDataBin getInst() const;
-
     void setData(const unsigned& data);
 
+    void setStalled(const bool& stalled);
+
     unsigned getData() const;
+
+    bool isStalled() const;
+
+    InstDataBin getInst() const;
 
 private:
     InstDataBin inst;
     unsigned data;
+    bool stalled;
 };
 
 } /* namespace lb */
