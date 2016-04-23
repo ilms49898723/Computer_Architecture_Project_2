@@ -25,17 +25,9 @@ public:
 
     // decode instruction set, saved by string
     static InstDataStr decodeInstStr(const unsigned& src);
-    // decode instruction set
-    // argument array passed by pointer(array length 2)
-    // will be merged and call decodeInstStr(const unsigned &src);
-    static InstDataStr decodeInstStr(const unsigned* src);
 
     // decode instruction set, save by unsigned
     static InstDataBin decodeInstBin(const unsigned& src);
-    // decode instruction set
-    // argument array passed by pointer(array length 2)
-    // will be merged and call decodeInstBin(const unsigned &src);
-    static InstDataBin decodeInstBin(const unsigned* src);
 };
 
 } /* namespace lb */

@@ -21,13 +21,10 @@ public:
     static std::string functLookUp(const unsigned& src);
     // translate reg -> numbers (ex. $0~$31)
     static std::string registerLookUpNumber(const unsigned& src);
-    // translate reg -> readable string (ex. t0, a0)
-    static std::string registerLookUpName(const unsigned& src);
 
 private:
     const static std::string opCodeLookUpTable[];
     const static std::string functLookUpTable[];
-    const static std::string registerLookUpTable[];
 };
 
 } /* namespace lb */

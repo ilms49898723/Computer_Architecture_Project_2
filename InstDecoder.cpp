@@ -77,11 +77,6 @@ InstDataStr InstDecoder::decodeInstStr(const unsigned& src) {
     }
 }
 
-InstDataStr InstDecoder::decodeInstStr(const unsigned* src) {
-    const unsigned argu = (src[0] << 16) | src[1];
-    return InstDecoder::decodeInstStr(argu);
-}
-
 InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
     unsigned opCode;
     unsigned rs, rt, rd;
@@ -139,11 +134,6 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         ret.setC(c);
         return ret;
     }
-}
-
-InstDataBin InstDecoder::decodeInstBin(const unsigned* src) {
-    const unsigned argu = (src[0] << 16) | src[1];
-    return InstDecoder::decodeInstBin(argu);
 }
 
 } /* namespace lb */

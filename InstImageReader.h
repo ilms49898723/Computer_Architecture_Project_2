@@ -23,7 +23,6 @@ public:
     static unsigned readImageD(FILE* dimage, unsigned* dst, unsigned* sp);
 
 public:
-    static unsigned char readByteFromBin(FILE* fin);
     static unsigned readWordFromBin(FILE* fin);
 };
 
