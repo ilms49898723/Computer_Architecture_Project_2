@@ -10,11 +10,13 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <deque>
 #include "InstDecoder.h"
 #include "InstMemory.h"
 #include "InstDataStr.h"
 #include "InstErrorDetector.h"
 #include "InstEnum.h"
+#include "InstPipelineData.h"
 
 namespace lb {
 
@@ -29,40 +31,54 @@ public:
 
     void init();
 
-    void loadImageI(const unsigned *src, const unsigned &len, const unsigned &pc);
+    void loadImageI(const unsigned* src, const unsigned& len, const unsigned& pc);
 
-    void loadImageD(const unsigned *src, const unsigned &len, const unsigned &sp);
+    void loadImageD(const unsigned* src, const unsigned& len, const unsigned& sp);
 
-    void simulate(FILE *snapshot, FILE *errorDump);
+    void simulate(FILE* snapshot, FILE* errorDump);
 
 private:
     bool isAlive;
     int cycle;
-    FILE *snapshot;
-    FILE *errorDump;
+    unsigned pc;
+    FILE* snapshot;
+    FILE* errorDump;
     InstMemory memory;
     InstDataBin instSet[maxn];
 
 private:
-    void dumpMemoryInfo(const int &cycle);
+    std::deque<InstPipelineData> pipeline;
 
-    void simulateTypeR(const InstDataBin &inst);
+private:
+    void dumpMemoryInfo(const int& cycle);
 
-    void simulateTypeI(const InstDataBin &inst);
+    void instIF();
 
-    void simulateTypeJ(const InstDataBin &inst);
+    void instID();
 
-    bool checkInst(const InstDataBin &inst);
+    void instEX();
 
-    bool isNOP(const InstDataBin &inst);
+    void instDM();
 
-    InstAction detectWriteRegZero(const unsigned &addr);
+    void instWB();
 
-    InstAction detectNumberOverflow(const int &a, const int &b, const InstOpType &op);
+    void pop();
 
-    InstAction detectMemAddrOverflow(const unsigned &addr, const InstMemLen &type);
+    bool checkInst(const InstDataBin& inst);
 
-    InstAction detectDataMisaligned(const unsigned &addr, const InstMemLen &type);
+    bool isNOP(const InstDataBin& inst);
+
+    bool isHalt(const InstDataBin& inst);
+
+    bool isFinished();
+
+    InstAction detectWriteRegZero(const unsigned& addr);
+
+    InstAction detectNumberOverflow(const int& a, const int& b, const InstOpType& op);
+
+    InstAction detectMemAddrOverflow(const unsigned& addr, const InstMemLen& type);
+
+    InstAction detectDataMisaligned(const unsigned& addr, const InstMemLen& type);
 };
 
 } /* namespace lb */
