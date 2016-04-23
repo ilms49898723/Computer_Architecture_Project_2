@@ -50,7 +50,7 @@ private:
     std::deque<InstPipelineData> pipeline;
 
 private:
-    void dumpMemoryInfo(const int& cycle);
+    void dumpSnapshot(const int& cycle);
 
     void instIF();
 

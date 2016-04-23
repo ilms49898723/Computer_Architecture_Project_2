@@ -50,23 +50,20 @@ void InstSimulator::loadImageD(const unsigned* src, const unsigned& len, const u
 void InstSimulator::simulate(FILE* snapshot, FILE* errorDump) {
     this->snapshot = snapshot;
     this->errorDump = errorDump;
-    isAlive = true;
-    cycle = 0;
     // insert nop to pipeline
     // from 0 to 4: IF, ID, EX, MEM, WB
     for (int i = 0; i < 5; ++i) {
         pipeline.push_back(InstPipelineData::nop);
     }
-    int currentInstIdx = pc >> 2;
     // initial state dump
-    dumpMemoryInfo(cycle);
+    dumpSnapshot(cycle);
     ++cycle;
     while (!isFinished()) {
         // TODO: pipeline, dump info
     }
 }
 
-void InstSimulator::dumpMemoryInfo(const int& cycle) {
+void InstSimulator::dumpSnapshot(const int& cycle) {
     fprintf(snapshot, "cycle %d\n", cycle);
     for (unsigned i = 0; i < 32; ++i) {
         fprintf(snapshot, "$%02d: 0x%08X\n", i, memory.getRegValue(i, InstMemLen::WORD));
