@@ -14,16 +14,9 @@
 
 namespace lb {
 
-template<typename Tp>
-std::string toString(const Tp& val) {
-    std::basic_stringstream<char> oss;
-    oss << val;
-    return oss.str();
-}
-
 // if has number, use decimal
 template<typename Tp>
-std::string toDecString(const Tp& val) {
+std::string toString(const Tp& val) {
     std::basic_stringstream<char> oss;
     oss << val;
     return oss.str();

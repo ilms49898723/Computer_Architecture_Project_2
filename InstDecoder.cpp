@@ -120,7 +120,6 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         return ret;
     }
     else if (opCode == 0x3Fu) {
-        opCodeStr = InstLookUp::opCodeLookUp(opCode);
         InstDataBin ret;
         ret.setInst(src);
         ret.setType(InstType::S);

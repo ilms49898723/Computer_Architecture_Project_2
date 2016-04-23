@@ -23,10 +23,7 @@ bool InstErrorDetector::isOverflowed(const int& src0, const int& src1, const Ins
     int signA = (a >= 0) ? 1 : -1;
     int signB = (b >= 0) ? 1 : -1;
     int signR = (result >= 0) ? 1 : -1;
-    if (signA * signB < 0) {
-        return false;
-    }
-    return signA * signR < 0;
+    return signA * signB >= 0 && signA * signR < 0;
 }
 
 bool InstErrorDetector::isValidMemoryAddr(const unsigned& addr, const InstMemLen& type) {

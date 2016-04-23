@@ -13,7 +13,7 @@ namespace lb {
 // enum class for basic operation type
 // add, sub, mul, div, mod
 enum class InstOpType : unsigned {
-    ADD, SUB, MUL, DIV, MOD
+    ADD, SUB
 };
 
 // enum class for simulate operation
