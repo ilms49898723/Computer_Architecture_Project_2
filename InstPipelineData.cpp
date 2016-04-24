@@ -13,19 +13,19 @@ const InstPipelineData InstPipelineData::nop = InstPipelineData(InstDecoder::dec
 
 InstPipelineData::InstPipelineData() {
     this->inst = InstDataBin();
-    this->data = 0u;
+    this->ALUOut = 0u;
     this->stalled = false;
 }
 
 InstPipelineData::InstPipelineData(const InstDataBin& inst) {
     this->inst = inst;
-    this->data = 0u;
+    this->ALUOut = 0u;
     this->stalled = false;
 }
 
 InstPipelineData::InstPipelineData(const InstDataBin& inst, const unsigned& data) {
     this->inst = inst;
-    this->data = data;
+    this->ALUOut = data;
     this->stalled = false;
 }
 
@@ -33,16 +33,24 @@ InstPipelineData::~InstPipelineData() {
 
 }
 
-void InstPipelineData::setData(const unsigned& data) {
-    this->data = data;
+void InstPipelineData::setALUOut(const unsigned& data) {
+    this->ALUOut = data;
+}
+
+void InstPipelineData::setMDR(const unsigned& mdr) {
+    this->MDR = mdr;
 }
 
 void InstPipelineData::setStalled(const bool& stalled) {
     this->stalled = stalled;
 }
 
-unsigned InstPipelineData::getData() const {
-    return data;
+unsigned InstPipelineData::getALUOut() const {
+    return ALUOut;
+}
+
+unsigned InstPipelineData::getMDR() const {
+    return MDR;
 }
 
 bool InstPipelineData::isStalled() const {

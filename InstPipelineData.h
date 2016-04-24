@@ -26,11 +26,15 @@ public:
 
     virtual ~InstPipelineData();
 
-    void setData(const unsigned& data);
+    void setALUOut(const unsigned& ALUOut);
+
+    void setMDR(const unsigned& MDR);
 
     void setStalled(const bool& stalled);
 
-    unsigned getData() const;
+    unsigned getALUOut() const;
+
+    unsigned getMDR() const;
 
     bool isStalled() const;
 
@@ -38,7 +42,8 @@ public:
 
 private:
     InstDataBin inst;
-    unsigned data;
+    unsigned ALUOut;
+    unsigned MDR;
     bool stalled;
 };
 
