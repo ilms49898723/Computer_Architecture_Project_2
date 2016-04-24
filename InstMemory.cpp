@@ -23,7 +23,7 @@ void InstMemory::init() {
     memset(mem, 0, sizeof(unsigned char) * 1024);
 }
 
-unsigned InstMemory::getRegValue(const unsigned& addr, const InstMemLen& type) const {
+unsigned InstMemory::getRegister(const unsigned& addr, const InstMemLen& type) const {
     if (type == InstMemLen::WORD) {
         return reg[addr];
     }
@@ -35,7 +35,7 @@ unsigned InstMemory::getRegValue(const unsigned& addr, const InstMemLen& type) c
     }
 }
 
-void InstMemory::setRegValue(const unsigned& addr, const unsigned& val, const InstMemLen& type) {
+void InstMemory::setRegister(const unsigned& addr, const unsigned& val, const InstMemLen& type) {
     if (addr == 0u) {
         return;
     }
@@ -50,7 +50,7 @@ void InstMemory::setRegValue(const unsigned& addr, const unsigned& val, const In
     }
 }
 
-unsigned InstMemory::getMemValue(const unsigned& addr, const InstMemLen& type) const {
+unsigned InstMemory::getMemory(const unsigned& addr, const InstMemLen& type) const {
     if (type == InstMemLen::WORD) {
         return (mem[addr] << 24) | (mem[addr + 1] << 16) | (mem[addr + 2] << 8) | mem[addr + 3];
     }
@@ -62,7 +62,7 @@ unsigned InstMemory::getMemValue(const unsigned& addr, const InstMemLen& type) c
     }
 }
 
-void InstMemory::setMemValue(const unsigned& addr, const unsigned& val, const InstMemLen& type) {
+void InstMemory::setMemory(const unsigned& addr, const unsigned& val, const InstMemLen& type) {
     if (type == InstMemLen::WORD) {
         mem[addr] = static_cast<unsigned char>((val >> 24) & 0xFFu);
         mem[addr + 1] = static_cast<unsigned char>((val >> 16) & 0xFFu);

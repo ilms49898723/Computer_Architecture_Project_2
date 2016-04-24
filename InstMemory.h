@@ -26,16 +26,16 @@ public:
     void init();
 
     // get reg value at addr
-    unsigned getRegValue(const unsigned& addr, const InstMemLen& type = InstMemLen::WORD) const;
+    unsigned getRegister(const unsigned& addr, const InstMemLen& type = InstMemLen::WORD) const;
 
     // set reg value to addr
-    void setRegValue(const unsigned& addr, const unsigned& val, const InstMemLen& type = InstMemLen::WORD);
+    void setRegister(const unsigned& addr, const unsigned& val, const InstMemLen& type = InstMemLen::WORD);
 
     // get memory value at addr, return as unsigned
-    unsigned getMemValue(const unsigned& addr, const InstMemLen& type) const;
+    unsigned getMemory(const unsigned& addr, const InstMemLen& type) const;
 
     // set memory value at addr, parameter all passed as unsigned
-    void setMemValue(const unsigned& addr, const unsigned& val, const InstMemLen& type);
+    void setMemory(const unsigned& addr, const unsigned& val, const InstMemLen& type);
 
 private:
     unsigned char mem[1024];
