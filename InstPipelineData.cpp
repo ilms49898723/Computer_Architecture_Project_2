@@ -15,6 +15,10 @@ InstPipelineData::InstPipelineData() {
     this->inst = InstDataBin();
     this->ALUOut = 0u;
     this->MDR = 0u;
+    this->valRs = 0u;
+    this->valRt = 0u;
+    this->valRd = 0u;
+    this->valC = 0u;
     this->stalled = false;
 }
 
@@ -22,6 +26,10 @@ InstPipelineData::InstPipelineData(const InstDataBin& inst) {
     this->inst = inst;
     this->ALUOut = 0u;
     this->MDR = 0u;
+    this->valRs = 0u;
+    this->valRt = 0u;
+    this->valRd = 0u;
+    this->valC = inst.getC();
     this->stalled = false;
 }
 
@@ -29,6 +37,10 @@ InstPipelineData::InstPipelineData(const InstDataBin& inst, const unsigned& data
     this->inst = inst;
     this->ALUOut = data;
     this->MDR = 0u;
+    this->valRs = 0u;
+    this->valRt = 0u;
+    this->valRd = 0u;
+    this->valC = inst.getC();
     this->stalled = false;
 }
 
@@ -44,6 +56,22 @@ void InstPipelineData::setMDR(const unsigned& mdr) {
     this->MDR = mdr;
 }
 
+void InstPipelineData::setValRs(const unsigned& rs) {
+    this->valRs = rs;
+}
+
+void InstPipelineData::setValRt(const unsigned& rt) {
+    this->valRt = rt;
+}
+
+void InstPipelineData::setValRd(const unsigned& rd) {
+    this->valRd = rd;
+}
+
+void InstPipelineData::setValC(const unsigned& c) {
+    this->valC = c;
+}
+
 void InstPipelineData::setStalled(const bool& stalled) {
     this->stalled = stalled;
 }
@@ -54,6 +82,22 @@ unsigned InstPipelineData::getALUOut() const {
 
 unsigned InstPipelineData::getMDR() const {
     return MDR;
+}
+
+unsigned InstPipelineData::getValRs() const {
+    return valRs;
+}
+
+unsigned InstPipelineData::getValRt() const {
+    return valRt;
+}
+
+unsigned InstPipelineData::getValRd() const {
+    return valRd;
+}
+
+unsigned InstPipelineData::getValC() const {
+    return valC;
 }
 
 bool InstPipelineData::isStalled() const {

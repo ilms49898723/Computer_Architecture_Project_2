@@ -30,11 +30,27 @@ public:
 
     void setMDR(const unsigned& MDR);
 
+    void setValRs(const unsigned& rs);
+
+    void setValRt(const unsigned& rt);
+
+    void setValRd(const unsigned& rd);
+
+    void setValC(const unsigned& c);
+
     void setStalled(const bool& stalled);
 
     unsigned getALUOut() const;
 
     unsigned getMDR() const;
+
+    unsigned getValRs() const;
+
+    unsigned getValRt() const;
+
+    unsigned getValRd() const;
+
+    unsigned getValC() const;
 
     bool isStalled() const;
 
@@ -44,6 +60,10 @@ private:
     InstDataBin inst;
     unsigned ALUOut;
     unsigned MDR;
+    unsigned valRs;
+    unsigned valRt;
+    unsigned valRd;
+    unsigned valC;
     bool stalled;
 };
 
