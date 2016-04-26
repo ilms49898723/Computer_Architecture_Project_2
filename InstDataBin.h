@@ -16,6 +16,13 @@
 
 namespace lb {
 
+struct InstElement {
+    unsigned val;
+    InstElementType type;
+    InstElement(unsigned val = 0, InstElementType type = InstElementType::UNDEF) :
+            val(val), type(type) {}
+};
+
 class InstDataBin {
 public:
     InstDataBin();
@@ -38,9 +45,9 @@ public:
 
     unsigned getInst() const;
 
-    const std::vector<unsigned>& getRegRead() const;
+    const std::vector<InstElement>& getRegRead() const;
 
-    const std::vector<unsigned>& getRegWrite() const;
+    const std::vector<InstElement>& getRegWrite() const;
 
     std::string getInstName() const;
 
@@ -62,9 +69,9 @@ public:
 
     void setInstName(const unsigned& val);
 
-    void setRegRead(const unsigned& reg);
+    void setRegRead(const InstElement& reg);
 
-    void setRegWrite(const unsigned& reg);
+    void setRegWrite(const InstElement& reg);
 
 private:
     InstType instType;
@@ -76,8 +83,8 @@ private:
     unsigned funct;
     unsigned inst;
     std::string instName;
-    std::vector<unsigned> regRead;
-    std::vector<unsigned> regWrite;
+    std::vector<InstElement> regRead;
+    std::vector<InstElement> regWrite;
 };
 
 } /* namespace lb */

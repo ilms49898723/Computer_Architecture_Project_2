@@ -62,11 +62,11 @@ std::string InstDataBin::getInstName() const {
     return instName;
 }
 
-const std::vector<unsigned>& InstDataBin::getRegRead() const {
+const std::vector<InstElement>& InstDataBin::getRegRead() const {
     return regRead;
 }
 
-const std::vector<unsigned>& InstDataBin::getRegWrite() const {
+const std::vector<InstElement>& InstDataBin::getRegWrite() const {
     return regWrite;
 }
 
@@ -119,11 +119,11 @@ void InstDataBin::setInstName(const unsigned& val) {
     }
 }
 
-void InstDataBin::setRegRead(const unsigned& reg) {
+void InstDataBin::setRegRead(const InstElement& reg) {
     regRead.push_back(reg);
 }
 
-void InstDataBin::setRegWrite(const unsigned& reg) {
+void InstDataBin::setRegWrite(const InstElement& reg) {
     regWrite.push_back(reg);
 }
 
