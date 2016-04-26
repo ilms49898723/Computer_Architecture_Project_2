@@ -19,7 +19,7 @@ enum class InstElement : unsigned {
 // enum class for pipeline stages
 // ID, IF, EM, DM, WB, NONE, STALL
 enum class InstStage : unsigned {
-    ID, IF, EX, DM, WB, NONE, STALL
+    ID, IF, EX, DM, WB, NONE, STALL, FORWARD
 };
 
 // enum class for basic operation type
