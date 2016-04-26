@@ -76,40 +76,40 @@ void InstSimulator::dumpSnapshot(const int& cycle) {
     for (unsigned i = 0; i < 32; ++i) {
         fprintf(snapshot, "$%02d: 0x%08X\n", i, memory.getRegister(i));
     }
+    // TODO: HAS NOT FINISHED INFORMATION
     fprintf(snapshot, "PC: 0x%08X\n", pc);
-    fprintf(snapshot, "IF: 0x%08X\n", pipeline.at(cIF).getInst().getInst());
-    fprintf(snapshot, "ID: %s\n", pipeline.at(cID).getInst().getInstName().c_str());
-    fprintf(snapshot, "EX: %s\n", pipeline.at(cEX).getInst().getInstName().c_str());
-    fprintf(snapshot, "DM: %s\n", pipeline.at(cDM).getInst().getInstName().c_str());
-    fprintf(snapshot, "WB: %s\n", pipeline.at(cWB).getInst().getInstName().c_str());
+    fprintf(snapshot, "IF: 0x%08X\n", pipeline.at(sIF).getInst().getInst());
+    fprintf(snapshot, "ID: %s\n", pipeline.at(sID).getInst().getInstName().c_str());
+    fprintf(snapshot, "EX: %s\n", pipeline.at(sEX).getInst().getInstName().c_str());
+    fprintf(snapshot, "DM: %s\n", pipeline.at(sDM).getInst().getInstName().c_str());
+    fprintf(snapshot, "WB: %s\n", pipeline.at(sWB).getInst().getInstName().c_str());
     fprintf(snapshot, "\n\n");
 }
 
 void InstSimulator::instIF() {
-    if (pipeline.size() < cStage) {
+    if (pipeline.size() < sStages) {
         instPush(pc);
     }
 }
 
 void InstSimulator::instID() {
-    const InstDataBin& current = pipeline.at(cID).getInst();
-
+    const InstDataBin& current = pipeline.at(sID).getInst();
     // TODO: forwording detect
     // TODO: BRANCH
 }
 
 void InstSimulator::instEX() {
-    const InstDataBin& current = pipeline.at(cEX).getInst();
+    const InstDataBin& current = pipeline.at(sEX).getInst();
     if (current.getInst() == 0u) {
         // nop
     }
     else if (current.getInstType() == InstType::R && current.getFunct() != 0x08u) {
         // type-R, not jr
-        pipeline.at(cEX).setALUOut(instALUR(current.getFunct()));
+        pipeline.at(sEX).setALUOut(instALUR(current.getFunct()));
     }
     else if (current.getInstType() == InstType::I && current.getOpCode() != 0x04u && current.getOpCode() != 0x05u && current.getOpCode() != 0x07u) {
         // type-I, not beq, bne, bgtz
-        pipeline.at(cEX).setALUOut(instALUI(current.getOpCode()));
+        pipeline.at(sEX).setALUOut(instALUI(current.getOpCode()));
     }
     else if (current.getInstType() == InstType::J) {
         // jumps
@@ -125,16 +125,16 @@ void InstSimulator::instEX() {
 }
 
 void InstSimulator::instDM() {
-    const InstDataBin& current = pipeline.at(cDM).getInst();
+    const InstDataBin& current = pipeline.at(sDM).getInst();
     if (isMemoryRelated(current.getOpCode())) {
         const unsigned& opCode = current.getOpCode();
-        const unsigned& ALUOut = pipeline.at(cDM).getALUOut();
+        const unsigned& ALUOut = pipeline.at(sDM).getALUOut();
         // TODO: NOT COMPLETED
     }
 }
 
 void InstSimulator::instWB() {
-    const InstPipelineData& current = pipeline.at(cWB);
+    const InstPipelineData& current = pipeline.at(sWB);
     if (isMemoryStore(current.getInst().getOpCode())) {
         unsigned val = memory.getRegister(current.getInst().getRt());
         instMemStore(current.getALUOut(), val, current.getInst().getOpCode());
@@ -145,7 +145,7 @@ void InstSimulator::instWB() {
 }
 
 void InstSimulator::instPush(const unsigned& pc) {
-    if (pipeline.size() < cStage) {
+    if (pipeline.size() < sStages) {
         pipeline.push_front(instSet[pc >> 2]);
     }
 }
@@ -155,9 +155,9 @@ void InstSimulator::instPop() {
 }
 
 unsigned InstSimulator::instALUR(const unsigned& funct) {
-    const unsigned& valRs = memory.getRegister(pipeline.at(cEX).getInst().getRs());
-    const unsigned& valRt = memory.getRegister(pipeline.at(cEX).getInst().getRt());
-    const unsigned& valC = pipeline.at(cEX).getInst().getC();
+    const unsigned& valRs = memory.getRegister(pipeline.at(sEX).getInst().getRs());
+    const unsigned& valRt = memory.getRegister(pipeline.at(sEX).getInst().getRt());
+    const unsigned& valC = pipeline.at(sEX).getInst().getC();
     switch (funct) {
         case 0x20u: // add
             return valRs + valRt;
@@ -189,8 +189,8 @@ unsigned InstSimulator::instALUR(const unsigned& funct) {
 }
 
 unsigned InstSimulator::instALUI(const unsigned& opCode) {
-    const unsigned& valRs = memory.getRegister(pipeline.at(cEX).getInst().getRs());
-    const unsigned& valC = pipeline.at(cEX).getInst().getC();
+    const unsigned& valRs = memory.getRegister(pipeline.at(sEX).getInst().getRs());
+    const unsigned& valC = pipeline.at(sEX).getInst().getC();
     switch (opCode) {
         case 0x08u: // addi
             return toUnsigned(toSigned(valRs) + toSigned(valC, 16));
@@ -472,7 +472,7 @@ bool InstSimulator::isBranchI(const unsigned& opCode) {
 
 bool InstSimulator::hasToStall(const InstDataBin& inst) {
     for (const auto& item : inst.getRegRead()) {
-        const std::vector<unsigned>& dmWrite = pipeline.at(cDM).getInst().getRegWrite();
+        const std::vector<unsigned>& dmWrite = pipeline.at(sDM).getInst().getRegWrite();
         if (!dmWrite.empty() && item == dmWrite.at(0)) {
             return true;
         }
@@ -482,8 +482,8 @@ bool InstSimulator::hasToStall(const InstDataBin& inst) {
 
 bool InstSimulator::hasDependency(const InstDataBin& inst) {
     for (const auto& item : inst.getRegRead()) {
-        const std::vector<unsigned>& exWrite = pipeline.at(cEX).getInst().getRegWrite();
-        const std::vector<unsigned>& dmWrite = pipeline.at(cDM).getInst().getRegWrite();
+        const std::vector<unsigned>& exWrite = pipeline.at(sEX).getInst().getRegWrite();
+        const std::vector<unsigned>& dmWrite = pipeline.at(sDM).getInst().getRegWrite();
         if (!exWrite.empty() && item == exWrite.at(0)) {
             return true;
         }

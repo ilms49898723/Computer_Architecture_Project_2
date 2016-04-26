@@ -25,12 +25,12 @@ private:
     constexpr static int maxn = 2048;
 
 private:
-    constexpr static int cIF = 0;
-    constexpr static int cID = 1;
-    constexpr static int cEX = 2;
-    constexpr static int cDM = 3;
-    constexpr static int cWB = 4;
-    constexpr static unsigned long long cStage = 5ll;
+    constexpr static int sIF = 0;
+    constexpr static int sID = 1;
+    constexpr static int sEX = 2;
+    constexpr static int sDM = 3;
+    constexpr static int sWB = 4;
+    constexpr static unsigned long long sStages = 5ll;
 
 public:
     InstSimulator();
