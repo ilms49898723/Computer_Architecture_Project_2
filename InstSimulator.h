@@ -24,6 +24,14 @@ class InstSimulator {
 private:
     constexpr static int maxn = 2048;
 
+private:
+    constexpr static int cIF = 0;
+    constexpr static int cID = 1;
+    constexpr static int cEX = 2;
+    constexpr static int cDM = 3;
+    constexpr static int cWB = 4;
+    constexpr static unsigned long long cStage = 5ll;
+
 public:
     InstSimulator();
 
@@ -62,7 +70,17 @@ private:
 
     void instWB();
 
-    void pop();
+    void instPush(const unsigned& pc);
+
+    void instPop();
+
+    unsigned instALUR(const unsigned& funct);
+
+    unsigned instALUI(const unsigned& opCode);
+
+    unsigned instMemLoad(const unsigned& addr, const unsigned& opCode);
+
+    void instMemStore(const unsigned& addr, const unsigned& opCode);
 
     bool checkInst(const InstDataBin& inst);
 
@@ -71,6 +89,12 @@ private:
     bool isHalt(const InstDataBin& inst);
 
     bool isFinished();
+
+    bool isMemoryRelated(const unsigned& opCode);
+
+    bool isBranchR(const unsigned& funct);
+
+    bool isBranchI(const unsigned& opCode);
 
     InstAction detectWriteRegZero(const unsigned& addr);
 
