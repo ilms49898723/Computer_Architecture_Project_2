@@ -106,18 +106,18 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         ret.setInstName(funct);
         switch (funct) {
             case 0x08u: // jr
-                ret.setRegRead(rs);
+                ret.setRegRead(InstElement(rs, InstElementType::RS));
                 break;
             case 0x00u: // sll
             case 0x02u: // srl
             case 0x03u: // sra
-                ret.setRegRead(rt);
-                ret.setRegWrite(rd);
+                ret.setRegRead(InstElement(rt, InstElementType::RT));
+                ret.setRegWrite(InstElement(rd, InstElementType::RD));
                 break;
             default:
-                ret.setRegRead(rs);
-                ret.setRegRead(rt);
-                ret.setRegWrite(rd);
+                ret.setRegRead(InstElement(rs, InstElementType::RS));
+                ret.setRegRead(InstElement(rt, InstElementType::RT));
+                ret.setRegWrite(InstElement(rd, InstElementType::RD));
                 break;
         }
         return ret;
@@ -154,24 +154,24 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         ret.setInstName(opCode);
         switch (opCode) {
             case 0x07u: // bgtz
-                ret.setRegRead(rs);
+                ret.setRegRead(InstElement(rs, InstElementType::RS));
                 break;
             case 0x0Fu: // lui
-                ret.setRegWrite(rt);
+                ret.setRegWrite(InstElement(rt, InstElementType::RT));
                 break;
             case 0x04u: // beq
             case 0x05u: // bne
-                ret.setRegRead(rs);
-                ret.setRegRead(rt);
+                ret.setRegRead(InstElement(rs, InstElementType::RS));
+                ret.setRegRead(InstElement(rt, InstElementType::RT));
                 break;
             case 0x2Bu: // sw
             case 0x29u: // sh
             case 0x28u: // sb
-                ret.setRegRead(rs);
+                ret.setRegRead(InstElement(rs, InstElementType::RS));
                 break;
             default:
-                ret.setRegRead(rs);
-                ret.setRegWrite(rt);
+                ret.setRegRead(InstElement(rs, InstElementType::RS));
+                ret.setRegWrite(InstElement(rt, InstElementType::RT));
                 break;
         }
         return ret;
