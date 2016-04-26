@@ -126,10 +126,10 @@ void InstSimulator::instEX() {
 
 void InstSimulator::instDM() {
     const InstDataBin& current = pipeline.at(sDM).getInst();
-    if (isMemoryRelated(current.getOpCode())) {
-        const unsigned& opCode = current.getOpCode();
+    if (isMemoryLoad(current.getOpCode())) {
         const unsigned& ALUOut = pipeline.at(sDM).getALUOut();
-        // TODO: NOT COMPLETED
+        const unsigned MDR = instMemLoad(ALUOut, current.getOpCode());
+        pipeline.at(sDM).setMDR(MDR);
     }
 }
 
@@ -422,22 +422,6 @@ bool InstSimulator::isFinished() {
            isHalt(pipeline.at(4).getInst());
 }
 
-bool InstSimulator::isMemoryRelated(const unsigned& opCode) {
-    switch (opCode) {
-        case 0x23u:
-        case 0x21u:
-        case 0x25u:
-        case 0x20u:
-        case 0x24u:
-        case 0x2Bu:
-        case 0x29u:
-        case 0x28u:
-            return true;
-        default:
-            return false;
-    }
-}
-
 bool InstSimulator::isMemoryLoad(const unsigned& opCode) {
     switch (opCode) {
         case 0x23u:
@@ -473,7 +457,7 @@ bool InstSimulator::isBranchI(const unsigned& opCode) {
 bool InstSimulator::hasToStall(const InstDataBin& inst) {
     for (const auto& item : inst.getRegRead()) {
         const std::vector<unsigned>& dmWrite = pipeline.at(sDM).getInst().getRegWrite();
-        if (!dmWrite.empty() && item == dmWrite.at(0)) {
+        if (!dmWrite.empty() && !item && item == dmWrite.at(0)) {
             return true;
         }
     }
@@ -484,10 +468,10 @@ bool InstSimulator::hasDependency(const InstDataBin& inst) {
     for (const auto& item : inst.getRegRead()) {
         const std::vector<unsigned>& exWrite = pipeline.at(sEX).getInst().getRegWrite();
         const std::vector<unsigned>& dmWrite = pipeline.at(sDM).getInst().getRegWrite();
-        if (!exWrite.empty() && item == exWrite.at(0)) {
+        if (!exWrite.empty() && !item && item == exWrite.at(0)) {
             return true;
         }
-        if (!dmWrite.empty() && item == dmWrite.at(0)) {
+        if (!dmWrite.empty() && !item && item == dmWrite.at(0)) {
             return true;
         }
     }

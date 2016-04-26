@@ -90,8 +90,6 @@ private:
 
     bool isFinished();
 
-    bool isMemoryRelated(const unsigned& opCode);
-
     bool isMemoryLoad(const unsigned& opCode);
 
     bool isMemoryStore(const unsigned& opCode);
