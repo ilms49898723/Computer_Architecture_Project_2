@@ -86,12 +86,14 @@ void InstSimulator::dumpSnapshot(const int& cycle) {
 }
 
 void InstSimulator::instIF() {
-    // TODO: stall detect(no push)
-    instPush(pc);
+    if (pipeline.size() < cStage) {
+        instPush(pc);
+    }
 }
 
 void InstSimulator::instID() {
     const InstDataBin& current = pipeline.at(cID).getInst();
+
     // TODO: forwording detect
     // TODO: BRANCH
 }
@@ -128,17 +130,18 @@ void InstSimulator::instDM() {
         const unsigned& opCode = current.getOpCode();
         const unsigned& ALUOut = pipeline.at(cDM).getALUOut();
         // TODO: NOT COMPLETED
-        if (opCode == 0x2Bu || opCode == 0x29u || opCode == 0x28u) {
-            instMemStore(ALUOut, memory.getRegister(current.getRt(), InstMemLen::WORD));
-        }
-        else {
-
-        }
     }
 }
 
 void InstSimulator::instWB() {
-
+    const InstPipelineData& current = pipeline.at(cWB);
+    if (isMemoryStore(current.getInst().getOpCode())) {
+        unsigned val = memory.getRegister(current.getInst().getRt());
+        instMemStore(current.getALUOut(), val, current.getInst().getOpCode());
+    }
+    else {
+        instMemStore(current.getInst().getRegWrite().at(0), current.getALUOut(), current.getInst().getOpCode());
+    }
 }
 
 void InstSimulator::instPush(const unsigned& pc) {
@@ -234,16 +237,16 @@ unsigned InstSimulator::instMemLoad(const unsigned& addr, const unsigned& opCode
     }
 }
 
-void InstSimulator::instMemStore(const unsigned& addr, const unsigned& opCode) {
+void InstSimulator::instMemStore(const unsigned& addr, const unsigned& val, const unsigned& opCode) {
     switch (opCode) {
         case 0x2Bu:
-            memory.setMemory(addr, pipeline.at(cDM).getALUOut(), InstMemLen::WORD);
+            memory.setMemory(addr, val, InstMemLen::WORD);
             return;
         case 0x29u:
-            memory.setMemory(addr, pipeline.at(cDM).getALUOut(), InstMemLen::HALF);
+            memory.setMemory(addr, val, InstMemLen::HALF);
             return;
         case 0x28u:
-            memory.setMemory(addr, pipeline.at(cDM).getALUOut(), InstMemLen::BYTE);
+            memory.setMemory(addr, val, InstMemLen::BYTE);
             return;
         default:
             return;
@@ -435,12 +438,74 @@ bool InstSimulator::isMemoryRelated(const unsigned& opCode) {
     }
 }
 
+bool InstSimulator::isMemoryLoad(const unsigned& opCode) {
+    switch (opCode) {
+        case 0x23u:
+        case 0x21u:
+        case 0x25u:
+        case 0x20u:
+        case 0x24u:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool InstSimulator::isMemoryStore(const unsigned& opCode) {
+    switch (opCode) {
+        case 0x2Bu:
+        case 0x29u:
+        case 0x28u:
+            return true;
+        default:
+            return false;
+    }
+}
+
 bool InstSimulator::isBranchR(const unsigned& funct) {
     return funct == 0x08u;
 }
 
 bool InstSimulator::isBranchI(const unsigned& opCode) {
     return opCode == 0x04u || opCode == 0x05u || opCode == 0x07u;
+}
+
+bool InstSimulator::hasToStall(const InstDataBin& inst) {
+    for (const auto& item : inst.getRegRead()) {
+        const std::vector<unsigned>& dmWrite = pipeline.at(cDM).getInst().getRegWrite();
+        if (!dmWrite.empty() && item == dmWrite.at(0)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool InstSimulator::hasDependency(const InstDataBin& inst) {
+    for (const auto& item : inst.getRegRead()) {
+        const std::vector<unsigned>& exWrite = pipeline.at(cEX).getInst().getRegWrite();
+        const std::vector<unsigned>& dmWrite = pipeline.at(cDM).getInst().getRegWrite();
+        if (!exWrite.empty() && item == exWrite.at(0)) {
+            return true;
+        }
+        if (!dmWrite.empty() && item == dmWrite.at(0)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+InstStage InstSimulator::checkForward(const InstDataBin& inst) {
+    if (hasDependency(inst)) {
+        if (hasToStall(inst)) {
+            return InstStage::STALL;
+        }
+        else {
+            return InstStage::EX;
+        }
+    }
+    else {
+        return InstStage::NONE;
+    }
 }
 
 InstAction InstSimulator::detectWriteRegZero(const unsigned& addr) {

@@ -80,7 +80,7 @@ private:
 
     unsigned instMemLoad(const unsigned& addr, const unsigned& opCode);
 
-    void instMemStore(const unsigned& addr, const unsigned& opCode);
+    void instMemStore(const unsigned& addr, const unsigned& val, const unsigned& opCode);
 
     bool checkInst(const InstDataBin& inst);
 
@@ -92,9 +92,19 @@ private:
 
     bool isMemoryRelated(const unsigned& opCode);
 
+    bool isMemoryLoad(const unsigned& opCode);
+
+    bool isMemoryStore(const unsigned& opCode);
+
     bool isBranchR(const unsigned& funct);
 
     bool isBranchI(const unsigned& opCode);
+
+    bool hasToStall(const InstDataBin& inst);
+
+    bool hasDependency(const InstDataBin& inst);
+
+    InstStage checkForward(const InstDataBin& inst);
 
     InstAction detectWriteRegZero(const unsigned& addr);
 
