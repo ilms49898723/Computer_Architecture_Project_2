@@ -10,6 +10,12 @@
 
 namespace lb {
 
+// enum class for instruction elements
+// OPCODE, RS, RT, RD, C, FUNCT
+enum class InstElement : unsigned {
+    OPCODE, RS, RT, RD, C, FUNCT
+};
+
 // enum class for pipeline stages
 // ID, IF, EM, DM, WB, NONE, STALL
 enum class InstStage : unsigned {
