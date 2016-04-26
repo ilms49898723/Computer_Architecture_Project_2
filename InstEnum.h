@@ -12,7 +12,7 @@ namespace lb {
 
 // enum class for instruction elements
 // OPCODE, RS, RT, RD, C, FUNCT
-enum class InstElement : unsigned {
+enum class InstElementType : unsigned {
     OPCODE, RS, RT, RD, C, FUNCT
 };
 
