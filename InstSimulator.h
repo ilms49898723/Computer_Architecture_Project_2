@@ -102,7 +102,7 @@ private:
 
     bool hasDependency(const InstDataBin& inst);
 
-    InstStage checkForward(const InstDataBin& inst);
+    InstStage checkInstDependency(const InstDataBin& inst);
 
     InstAction detectWriteRegZero(const unsigned& addr);
 

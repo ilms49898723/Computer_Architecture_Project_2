@@ -93,9 +93,33 @@ void InstSimulator::instIF() {
 }
 
 void InstSimulator::instID() {
-    const InstDataBin& current = pipeline.at(sID).getInst();
+    InstPipelineData& current = pipeline.at(sID);
+    const InstDataBin& currentInst = pipeline.at(sID).getInst();
     // TODO: forwording detect
     // TODO: BRANCH
+    InstStage op = checkInstDependency(currentInst);
+    if (op == InstStage::STALL) {
+        pipeline.at(sID).setStalled(true);
+    }
+    else if (op == InstStage::FORWARD) {
+        const std::vector<InstElement>& exWrite = pipeline.at(sEX).getInst().getRegWrite();
+        for (const auto& item : currentInst.getRegRead()) {
+            if (item.val == exWrite.at(0).val) {
+                if (item.type == InstElementType::RS) {
+                    current.setValRs(pipeline.at(sEX).getALUOut());
+                }
+                else if (item.type == InstElementType::RT) {
+                    current.setValRt(pipeline.at(sEX).getALUOut());
+                }
+            }
+        }
+    }
+    else {
+        const unsigned valRs = memory.getRegister(currentInst.getRs());
+        const unsigned valRt = memory.getRegister(currentInst.getRt());
+        current.setValRs(valRs);
+        current.setValRt(valRt);
+    }
 }
 
 void InstSimulator::instEX() {
@@ -140,7 +164,7 @@ void InstSimulator::instWB() {
         instMemStore(current.getALUOut(), val, current.getInst().getOpCode());
     }
     else {
-        instMemStore(current.getInst().getRegWrite().at(0), current.getALUOut(), current.getInst().getOpCode());
+        instMemStore(current.getInst().getRegWrite().at(0).val, current.getALUOut(), current.getInst().getOpCode());
     }
 }
 
@@ -455,9 +479,9 @@ bool InstSimulator::isBranchI(const unsigned& opCode) {
 }
 
 bool InstSimulator::hasToStall(const InstDataBin& inst) {
+    const std::vector<InstElement>& dmWrite = pipeline.at(sDM).getInst().getRegWrite();
     for (const auto& item : inst.getRegRead()) {
-        const std::vector<unsigned>& dmWrite = pipeline.at(sDM).getInst().getRegWrite();
-        if (!dmWrite.empty() && !item && item == dmWrite.at(0)) {
+        if (!dmWrite.empty() && !item.val && item.val == dmWrite.at(0).val) {
             return true;
         }
     }
@@ -465,26 +489,26 @@ bool InstSimulator::hasToStall(const InstDataBin& inst) {
 }
 
 bool InstSimulator::hasDependency(const InstDataBin& inst) {
+    const std::vector<InstElement>& exWrite = pipeline.at(sEX).getInst().getRegWrite();
+    const std::vector<InstElement>& dmWrite = pipeline.at(sDM).getInst().getRegWrite();
     for (const auto& item : inst.getRegRead()) {
-        const std::vector<unsigned>& exWrite = pipeline.at(sEX).getInst().getRegWrite();
-        const std::vector<unsigned>& dmWrite = pipeline.at(sDM).getInst().getRegWrite();
-        if (!exWrite.empty() && !item && item == exWrite.at(0)) {
+        if (!exWrite.empty() && !item.val && item.val == exWrite.at(0).val) {
             return true;
         }
-        if (!dmWrite.empty() && !item && item == dmWrite.at(0)) {
+        if (!dmWrite.empty() && !item.val && item.val == dmWrite.at(0).val) {
             return true;
         }
     }
     return false;
 }
 
-InstStage InstSimulator::checkForward(const InstDataBin& inst) {
+InstStage InstSimulator::checkInstDependency(const InstDataBin& inst) {
     if (hasDependency(inst)) {
         if (hasToStall(inst)) {
             return InstStage::STALL;
         }
         else {
-            return InstStage::EX;
+            return InstStage::FORWARD;
         }
     }
     else {
