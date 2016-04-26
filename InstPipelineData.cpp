@@ -17,7 +17,6 @@ InstPipelineData::InstPipelineData() {
     this->MDR = 0u;
     this->valRs = 0u;
     this->valRt = 0u;
-    this->valRd = 0u;
     this->valC = 0u;
     this->stalled = false;
 }
@@ -28,7 +27,6 @@ InstPipelineData::InstPipelineData(const InstDataBin& inst) {
     this->MDR = 0u;
     this->valRs = 0u;
     this->valRt = 0u;
-    this->valRd = 0u;
     this->valC = inst.getC();
     this->stalled = false;
 }
@@ -39,7 +37,6 @@ InstPipelineData::InstPipelineData(const InstDataBin& inst, const unsigned& data
     this->MDR = 0u;
     this->valRs = 0u;
     this->valRt = 0u;
-    this->valRd = 0u;
     this->valC = inst.getC();
     this->stalled = false;
 }
@@ -64,10 +61,6 @@ void InstPipelineData::setValRt(const unsigned& rt) {
     this->valRt = rt;
 }
 
-void InstPipelineData::setValRd(const unsigned& rd) {
-    this->valRd = rd;
-}
-
 void InstPipelineData::setValC(const unsigned& c) {
     this->valC = c;
 }
@@ -90,10 +83,6 @@ unsigned InstPipelineData::getValRs() const {
 
 unsigned InstPipelineData::getValRt() const {
     return valRt;
-}
-
-unsigned InstPipelineData::getValRd() const {
-    return valRd;
 }
 
 unsigned InstPipelineData::getValC() const {

@@ -34,8 +34,6 @@ public:
 
     void setValRt(const unsigned& rt);
 
-    void setValRd(const unsigned& rd);
-
     void setValC(const unsigned& c);
 
     void setStalled(const bool& stalled);
@@ -47,8 +45,6 @@ public:
     unsigned getValRs() const;
 
     unsigned getValRt() const;
-
-    unsigned getValRd() const;
 
     unsigned getValC() const;
 
@@ -62,7 +58,6 @@ private:
     unsigned MDR;
     unsigned valRs;
     unsigned valRt;
-    unsigned valRd;
     unsigned valC;
     bool stalled;
 };
