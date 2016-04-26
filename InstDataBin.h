@@ -9,6 +9,7 @@
 #define INSTDATABIN_H_
 
 #include <string>
+#include <vector>
 #include "InstLookUp.h"
 #include "InstUtility.h"
 #include "InstEnum.h"
@@ -57,6 +58,10 @@ public:
 
     void setInstName(const unsigned& val);
 
+    std::vector& getRegRead();
+
+    std::vector& getRegWrite();
+
 private:
     InstType instType;
     unsigned opCode;
@@ -67,6 +72,8 @@ private:
     unsigned funct;
     unsigned inst;
     std::string instName;
+    std::vector<unsigned> regRead;
+    std::vector<unsigned> regWrite;
 };
 
 } /* namespace lb */

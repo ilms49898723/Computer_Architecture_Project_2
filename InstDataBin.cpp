@@ -18,6 +18,8 @@ InstDataBin::InstDataBin() {
     this->c = 0u;
     this->funct = 0u;
     this->inst = 0u;
+    this->regRead.clear();
+    this->regWrite.clear();
 }
 
 InstDataBin::~InstDataBin() {
@@ -107,6 +109,14 @@ void InstDataBin::setInstName(const unsigned& val) {
     else {
         instName = toUpperString(InstLookUp::opCodeLookUp(val));
     }
+}
+
+std::vector& InstDataBin::getRegRead() {
+    return regRead;
+}
+
+std::vector& InstDataBin::getRegWrite() {
+    return regWrite;
 }
 
 } /* namespace lb */
