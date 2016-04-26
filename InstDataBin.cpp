@@ -10,8 +10,14 @@
 namespace lb {
 
 InstDataBin::InstDataBin() {
-    instType = InstType::Undef;
-    opCode = rs = rt = rd = c = funct = inst = 0u;
+    this->instType = InstType::Undef;
+    this->opCode = 0u;
+    this->rs = 0u;
+    this->rt = 0u;
+    this->rd = 0u;
+    this->c = 0u;
+    this->funct = 0u;
+    this->inst = 0u;
 }
 
 InstDataBin::~InstDataBin() {

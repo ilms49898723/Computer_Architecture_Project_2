@@ -14,18 +14,21 @@ const InstPipelineData InstPipelineData::nop = InstPipelineData(InstDecoder::dec
 InstPipelineData::InstPipelineData() {
     this->inst = InstDataBin();
     this->ALUOut = 0u;
+    this->MDR = 0u;
     this->stalled = false;
 }
 
 InstPipelineData::InstPipelineData(const InstDataBin& inst) {
     this->inst = inst;
     this->ALUOut = 0u;
+    this->MDR = 0u;
     this->stalled = false;
 }
 
 InstPipelineData::InstPipelineData(const InstDataBin& inst, const unsigned& data) {
     this->inst = inst;
     this->ALUOut = data;
+    this->MDR = 0u;
     this->stalled = false;
 }
 

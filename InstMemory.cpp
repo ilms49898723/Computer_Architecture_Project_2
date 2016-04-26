@@ -10,8 +10,8 @@
 namespace lb {
 
 InstMemory::InstMemory() {
-    memset(reg, 0, sizeof(unsigned) * 32);
-    memset(mem, 0, sizeof(unsigned char) * 1024);
+    memset(this->reg, 0, sizeof(unsigned) * 32);
+    memset(this->mem, 0, sizeof(unsigned char) * 1024);
 }
 
 InstMemory::~InstMemory() {
