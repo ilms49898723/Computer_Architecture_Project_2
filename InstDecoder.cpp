@@ -105,12 +105,12 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         ret.setFunct(funct);
         ret.setInstName(funct);
         switch (funct) {
-            case 0x8u:
+            case 0x08u: // jr
                 ret.setRegRead(rs);
                 break;
-            case 0x0u:
-            case 0x02u:
-            case 0x03u:
+            case 0x00u: // sll
+            case 0x02u: // srl
+            case 0x03u: // sra
                 ret.setRegRead(rt);
                 ret.setRegWrite(rd);
                 break;
@@ -153,16 +153,21 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         ret.setC(c);
         ret.setInstName(opCode);
         switch (opCode) {
-            case 0x07u:
+            case 0x07u: // bgtz
                 ret.setRegRead(rs);
                 break;
-            case 0x0Fu:
+            case 0x0Fu: // lui
                 ret.setRegWrite(rt);
                 break;
-            case 0x04u:
-            case 0x05u:
+            case 0x04u: // beq
+            case 0x05u: // bne
                 ret.setRegRead(rs);
                 ret.setRegRead(rt);
+                break;
+            case 0x2Bu: // sw
+            case 0x29u: // sh
+            case 0x28u: // sb
+                ret.setRegRead(rs);
                 break;
             default:
                 ret.setRegRead(rs);
