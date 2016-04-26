@@ -38,9 +38,9 @@ public:
 
     unsigned getInst() const;
 
-    const std::vector& getRegRead() const;
+    const std::vector<unsigned>& getRegRead() const;
 
-    const std::vector& getRegWrite() const;
+    const std::vector<unsigned>& getRegWrite() const;
 
     std::string getInstName() const;
 
