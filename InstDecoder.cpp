@@ -104,6 +104,22 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         ret.setC(c);
         ret.setFunct(funct);
         ret.setInstName(funct);
+        switch (funct) {
+            case 0x8u:
+                ret.getRegRead().push_back(rs);
+                break;
+            case 0x0u:
+            case 0x02u:
+            case 0x03u:
+                ret.getRegRead().push_back(rt);
+                ret.getRegWrite().push_back(rd);
+                break;
+            default:
+                ret.getRegRead().push_back(rs);
+                ret.getRegRead().push_back(rt);
+                ret.getRegWrite().push_back(rd);
+                break;
+        }
         return ret;
     }
     else if (opCode == 0x02u || opCode == 0x03u) {
@@ -136,6 +152,23 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         ret.setRt(rt);
         ret.setC(c);
         ret.setInstName(opCode);
+        switch (opCode) {
+            case 0x07u:
+                ret.getRegRead().push_back(rs);
+                break;
+            case 0x0Fu:
+                ret.getRegWrite().push_back(rt);
+                break;
+            case 0x04u:
+            case 0x05u:
+                ret.getRegRead().push_back(rs);
+                ret.getRegRead().push_back(rt);
+                break;
+            default:
+                ret.getRegRead().push_back(rs);
+                ret.getRegWrite().push_back(rt);
+                break;
+        }
         return ret;
     }
 }
