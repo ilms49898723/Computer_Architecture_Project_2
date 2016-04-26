@@ -4,16 +4,24 @@ CC := g++
 
 CXXFLAGS := -std=c++11 -Os -Wall
 
-OBJS := InstDataBin.o InstDataStr.o InstDecoder.o InstErrorDetector.o \
-        InstImageReader.o InstLookUp.o InstMemory.o InstSimulator.o \
-        InstUtility.o main.o
+OBJS := InstDataBin.o \
+        InstDataStr.o \
+        InstDecoder.o \
+        InstErrorDetector.o \
+        InstImageReader.o \
+        InstLookUp.o \
+        InstMemory.o \
+        InstPipelineData.o \
+        InstSimulator.o \
+        InstUtility.o \
+        main.o
 
 OUTPUT := pipeline
 
 .SUFFIXS:
 .SUFFIXS: .cpp .o
 
-.PHONY: clean
+.PHONY: all pipeline clean
 
 all: pipeline
 
@@ -24,4 +32,4 @@ pipeline: ${OBJS}
 	${CC} ${CXXFLAGS} -c $<
 
 clean:
-	-rm -f *.o ${OUTPUT}
+	-rm -f ${OBJS} ${OUTPUT}
