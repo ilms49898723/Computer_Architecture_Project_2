@@ -38,6 +38,10 @@ public:
 
     unsigned getInst() const;
 
+    const std::vector& getRegRead() const;
+
+    const std::vector& getRegWrite() const;
+
     std::string getInstName() const;
 
     void setInstType(const InstType& val);
@@ -58,9 +62,9 @@ public:
 
     void setInstName(const unsigned& val);
 
-    std::vector& getRegRead();
+    void setRegRead(const unsigned& reg);
 
-    std::vector& getRegWrite();
+    void setRegWrite(const unsigned& reg);
 
 private:
     InstType instType;

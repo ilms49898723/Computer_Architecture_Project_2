@@ -106,18 +106,18 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         ret.setInstName(funct);
         switch (funct) {
             case 0x8u:
-                ret.getRegRead().push_back(rs);
+                ret.setRegRead(rs);
                 break;
             case 0x0u:
             case 0x02u:
             case 0x03u:
-                ret.getRegRead().push_back(rt);
-                ret.getRegWrite().push_back(rd);
+                ret.setRegRead(rt);
+                ret.setRegWrite(rd);
                 break;
             default:
-                ret.getRegRead().push_back(rs);
-                ret.getRegRead().push_back(rt);
-                ret.getRegWrite().push_back(rd);
+                ret.setRegRead(rs);
+                ret.setRegRead(rt);
+                ret.setRegWrite(rd);
                 break;
         }
         return ret;
@@ -154,19 +154,19 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         ret.setInstName(opCode);
         switch (opCode) {
             case 0x07u:
-                ret.getRegRead().push_back(rs);
+                ret.setRegRead(rs);
                 break;
             case 0x0Fu:
-                ret.getRegWrite().push_back(rt);
+                ret.setRegWrite(rt);
                 break;
             case 0x04u:
             case 0x05u:
-                ret.getRegRead().push_back(rs);
-                ret.getRegRead().push_back(rt);
+                ret.setRegRead(rs);
+                ret.setRegRead(rt);
                 break;
             default:
-                ret.getRegRead().push_back(rs);
-                ret.getRegWrite().push_back(rt);
+                ret.setRegRead(rs);
+                ret.setRegWrite(rt);
                 break;
         }
         return ret;
