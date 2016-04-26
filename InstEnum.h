@@ -10,6 +10,12 @@
 
 namespace lb {
 
+// enum class for pipeline stages
+// ID, IF, EM, DM, WB, NONE, STALL
+enum class InstStage : unsigned {
+    ID, IF, EX, DM, WB, NONE, STALL
+};
+
 // enum class for basic operation type
 // add, sub, mul, div, mod
 enum class InstOpType : unsigned {
