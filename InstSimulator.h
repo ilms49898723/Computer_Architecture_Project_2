@@ -13,9 +13,9 @@
 #include <deque>
 #include "InstDecoder.h"
 #include "InstMemory.h"
-#include "InstDataStr.h"
+#include "InstDataBin.h"
 #include "InstErrorDetector.h"
-#include "InstEnum.h"
+#include "InstType.h"
 #include "InstPipelineData.h"
 
 namespace lb {
@@ -47,6 +47,7 @@ public:
 
 private:
     bool isAlive;
+    bool pcUpdated;
     int cycle;
     unsigned pc;
     FILE* snapshot;
@@ -56,9 +57,14 @@ private:
 
 private:
     std::deque<InstPipelineData> pipeline;
+    std::deque<InstElement> idForward;
+    std::deque<InstElement> exForward;
 
 private:
-    void dumpSnapshot(const int& cycle);
+
+    void dumpSnapshot(FILE* fp);
+
+    void dumpPipelineInfo(FILE* fp, const int stage);
 
     void instIF();
 
@@ -74,9 +80,19 @@ private:
 
     void instPop();
 
+    void instStall();
+
+    void instUnstall();
+
+    void instFlush();
+
+    void instCleanUp();
+
     unsigned instALUR(const unsigned& funct);
 
     unsigned instALUI(const unsigned& opCode);
+
+    unsigned instALUJ();
 
     unsigned instMemLoad(const unsigned& addr, const unsigned& opCode);
 
@@ -94,23 +110,27 @@ private:
 
     bool isMemoryStore(const unsigned& opCode);
 
+    bool isBranch(const InstDataBin& inst);
+
     bool isBranchR(const unsigned& funct);
 
     bool isBranchI(const unsigned& opCode);
+
+    bool isBranchJ(const unsigned& opCode);
 
     bool hasToStall(const InstDataBin& inst);
 
     bool hasDependency(const InstDataBin& inst);
 
-    InstStage checkInstDependency(const InstDataBin& inst);
+    InstState checkInstDependency(const InstDataBin& inst);
 
     InstAction detectWriteRegZero(const unsigned& addr);
 
     InstAction detectNumberOverflow(const int& a, const int& b, const InstOpType& op);
 
-    InstAction detectMemAddrOverflow(const unsigned& addr, const InstMemLen& type);
+    InstAction detectMemAddrOverflow(const unsigned& addr, const InstSize& type);
 
-    InstAction detectDataMisaligned(const unsigned& addr, const InstMemLen& type);
+    InstAction detectDataMisaligned(const unsigned& addr, const InstSize& type);
 };
 
 } /* namespace lb */

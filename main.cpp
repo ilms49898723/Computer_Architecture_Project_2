@@ -19,8 +19,8 @@ int main(int argc, char** argv) {
     dLen = lb::InstImageReader::readImageD("dimage.bin", memory, &sp);
     // simulate
     FILE* snapShot, * errorDump;
-    snapShot = fopen("snapshot.rpt", "w");
-    errorDump = fopen("error_dump.rpt", "w");
+    snapShot = fopen("ssnapshot.rpt", "w");
+    errorDump = fopen("eerror_dump.rpt", "w");
     if (!snapShot || !errorDump) {
         exit(EXIT_FAILURE);
     }
