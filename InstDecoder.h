@@ -13,7 +13,7 @@
 #include "InstDataStr.h"
 #include "InstLookUp.h"
 #include "InstUtility.h"
-#include "InstEnum.h"
+#include "InstType.h"
 
 namespace lb {
 

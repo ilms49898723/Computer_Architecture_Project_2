@@ -10,7 +10,7 @@
 
 #include <string>
 #include "InstUtility.h"
-#include "InstEnum.h"
+#include "InstType.h"
 
 namespace lb {
 

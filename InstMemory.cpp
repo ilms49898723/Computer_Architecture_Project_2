@@ -23,11 +23,11 @@ void InstMemory::init() {
     memset(mem, 0, sizeof(unsigned char) * 1024);
 }
 
-unsigned InstMemory::getRegister(const unsigned& addr, const InstMemLen& type) const {
-    if (type == InstMemLen::WORD) {
+unsigned InstMemory::getRegister(const unsigned& addr, const InstSize& type) const {
+    if (type == InstSize::WORD) {
         return reg[addr];
     }
-    else if (type == InstMemLen::HALF) {
+    else if (type == InstSize::HALF) {
         return reg[addr] & 0x0000FFFFu;
     }
     else {
@@ -35,14 +35,14 @@ unsigned InstMemory::getRegister(const unsigned& addr, const InstMemLen& type) c
     }
 }
 
-void InstMemory::setRegister(const unsigned& addr, const unsigned& val, const InstMemLen& type) {
+void InstMemory::setRegister(const unsigned& addr, const unsigned& val, const InstSize& type) {
     if (addr == 0u) {
         return;
     }
-    if (type == InstMemLen::WORD) {
+    if (type == InstSize::WORD) {
         reg[addr] = val;
     }
-    else if (type == InstMemLen::HALF) {
+    else if (type == InstSize::HALF) {
         reg[addr] = val & 0x0000FFFFu;
     }
     else {
@@ -50,11 +50,11 @@ void InstMemory::setRegister(const unsigned& addr, const unsigned& val, const In
     }
 }
 
-unsigned InstMemory::getMemory(const unsigned& addr, const InstMemLen& type) const {
-    if (type == InstMemLen::WORD) {
+unsigned InstMemory::getMemory(const unsigned& addr, const InstSize& type) const {
+    if (type == InstSize::WORD) {
         return (mem[addr] << 24) | (mem[addr + 1] << 16) | (mem[addr + 2] << 8) | mem[addr + 3];
     }
-    else if (type == InstMemLen::HALF) {
+    else if (type == InstSize::HALF) {
         return (mem[addr] << 8) | (mem[addr + 1]);
     }
     else {
@@ -62,14 +62,14 @@ unsigned InstMemory::getMemory(const unsigned& addr, const InstMemLen& type) con
     }
 }
 
-void InstMemory::setMemory(const unsigned& addr, const unsigned& val, const InstMemLen& type) {
-    if (type == InstMemLen::WORD) {
+void InstMemory::setMemory(const unsigned& addr, const unsigned& val, const InstSize& type) {
+    if (type == InstSize::WORD) {
         mem[addr] = static_cast<unsigned char>((val >> 24) & 0xFFu);
         mem[addr + 1] = static_cast<unsigned char>((val >> 16) & 0xFFu);
         mem[addr + 2] = static_cast<unsigned char>((val >> 8) & 0xFFu);
         mem[addr + 3] = static_cast<unsigned char>(val & 0xFFu);
     }
-    else if (type == InstMemLen::HALF) {
+    else if (type == InstSize::HALF) {
         mem[addr] = static_cast<unsigned char>((val >> 8) & 0xFFu);
         mem[addr + 1] = static_cast<unsigned char>(val & 0xFFu);
     }

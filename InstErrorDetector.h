@@ -12,7 +12,7 @@
 #include "InstDataStr.h"
 #include "InstUtility.h"
 #include "InstMemory.h"
-#include "InstEnum.h"
+#include "InstType.h"
 
 namespace lb {
 
@@ -31,10 +31,10 @@ public:
     static bool isOverflowed(const int& src0, const int& src1, const InstOpType& op);
 
     // check memory address(should between 0 to 1023)
-    static bool isValidMemoryAddr(const unsigned& addr, const InstMemLen& type);
+    static bool isValidMemoryAddr(const unsigned& addr, const InstSize& type);
 
     // check misaligned address
-    static bool isAlignedAddr(const unsigned& addr, const InstMemLen& type);
+    static bool isAlignedAddr(const unsigned& addr, const InstSize& type);
 };
 
 } /* namespace lb */

@@ -12,7 +12,7 @@ set(SOURCE_FILES
     InstDataStr.h
     InstDecoder.cpp
     InstDecoder.h
-    InstEnum.h
+        InstType.h
     InstErrorDetector.cpp
     InstErrorDetector.h
     InstImageReader.cpp

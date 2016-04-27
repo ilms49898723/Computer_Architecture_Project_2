@@ -26,11 +26,11 @@ bool InstErrorDetector::isOverflowed(const int& src0, const int& src1, const Ins
     return signA * signB >= 0 && signA * signR < 0;
 }
 
-bool InstErrorDetector::isValidMemoryAddr(const unsigned& addr, const InstMemLen& type) {
-    if (type == InstMemLen::WORD) {
+bool InstErrorDetector::isValidMemoryAddr(const unsigned& addr, const InstSize& type) {
+    if (type == InstSize::WORD) {
         return addr < 1024u && (addr + 4 - 1) < 1024u;
     }
-    else if (type == InstMemLen::HALF) {
+    else if (type == InstSize::HALF) {
         return addr < 1024u && (addr + 2 - 1) < 1024u;
     }
     else {
@@ -38,11 +38,11 @@ bool InstErrorDetector::isValidMemoryAddr(const unsigned& addr, const InstMemLen
     }
 }
 
-bool InstErrorDetector::isAlignedAddr(const unsigned& addr, const InstMemLen& type) {
-    if (type == InstMemLen::WORD) {
+bool InstErrorDetector::isAlignedAddr(const unsigned& addr, const InstSize& type) {
+    if (type == InstSize::WORD) {
         return (addr % 4) == 0;
     }
-    else if (type == InstMemLen::HALF) {
+    else if (type == InstSize::HALF) {
         return (addr & 1) == 0;
     }
     else {

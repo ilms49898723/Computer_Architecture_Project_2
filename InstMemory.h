@@ -11,7 +11,7 @@
 #include <cstring>
 #include <string>
 #include "InstUtility.h"
-#include "InstEnum.h"
+#include "InstType.h"
 
 namespace lb {
 
@@ -26,16 +26,16 @@ public:
     void init();
 
     // get reg value at addr
-    unsigned getRegister(const unsigned& addr, const InstMemLen& type = InstMemLen::WORD) const;
+    unsigned getRegister(const unsigned& addr, const InstSize& type = InstSize::WORD) const;
 
     // set reg value to addr
-    void setRegister(const unsigned& addr, const unsigned& val, const InstMemLen& type = InstMemLen::WORD);
+    void setRegister(const unsigned& addr, const unsigned& val, const InstSize& type = InstSize::WORD);
 
     // get memory value at addr, return as unsigned
-    unsigned getMemory(const unsigned& addr, const InstMemLen& type) const;
+    unsigned getMemory(const unsigned& addr, const InstSize& type) const;
 
     // set memory value at addr, parameter all passed as unsigned
-    void setMemory(const unsigned& addr, const unsigned& val, const InstMemLen& type);
+    void setMemory(const unsigned& addr, const unsigned& val, const InstSize& type);
 
 private:
     unsigned char mem[1024];

@@ -19,11 +19,11 @@ int toSigned(const unsigned& src) {
     return static_cast<int>(src);
 }
 
-int toSigned(const unsigned& src, const InstMemLen& type) {
-    if (type == InstMemLen::WORD) {
+int toSigned(const unsigned& src, const InstSize& type) {
+    if (type == InstSize::WORD) {
         return static_cast<int>(src);
     }
-    else if (type == InstMemLen::HALF) {
+    else if (type == InstSize::HALF) {
         int var = static_cast<int>(src << 16);
         int ret = var >> 16;
         return ret;

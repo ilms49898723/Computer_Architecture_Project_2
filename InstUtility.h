@@ -11,7 +11,7 @@
 #include <cctype>
 #include <sstream>
 #include <string>
-#include "InstEnum.h"
+#include "InstType.h"
 
 namespace lb {
 
@@ -42,10 +42,10 @@ int toSigned(const unsigned& src);
 
 // extend sign bits
 // ex. 1 byte "0x80" to 4 bytes "0xFFFFFF80"
-int toSigned(const unsigned& src, const lb::InstMemLen& type);
+int toSigned(const unsigned& src, const lb::InstSize& type);
 
 // extend sign bits
-// similar to int toSigned(const unsigned& src, const LB::InstMemLen& type);
+// similar to int toSigned(const unsigned& src, const LB::InstSize& type);
 // argument type pass by bits number instead
 // bits: src bits
 int toSigned(const unsigned& src, const int& bits);

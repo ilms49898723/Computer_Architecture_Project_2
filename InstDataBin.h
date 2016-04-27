@@ -12,16 +12,9 @@
 #include <vector>
 #include "InstLookUp.h"
 #include "InstUtility.h"
-#include "InstEnum.h"
+#include "InstType.h"
 
 namespace lb {
-
-struct InstElement {
-    unsigned val;
-    InstElementType type;
-    InstElement(unsigned val = 0, InstElementType type = InstElementType::UNDEF) :
-            val(val), type(type) {}
-};
 
 class InstDataBin {
 public:

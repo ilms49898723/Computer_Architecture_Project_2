@@ -1,14 +1,21 @@
 /*
- * InstEnum.h
+ * InstType.h
  *
  *  Created on: 2016/03/25
  *      Author: LittleBird
  */
 
-#ifndef INSTENUM_H_
-#define INSTENUM_H_
+#ifndef INSTTYPE_H_
+#define INSTTYPE_H_
 
 namespace lb {
+
+struct InstElement {
+    unsigned val;
+    InstElementType type;
+    InstElement(unsigned val = 0, InstElementType type = InstElementType::UNDEF) :
+            val(val), type(type) {}
+};
 
 // enum class for instruction elements
 // OPCODE, RS, RT, RD, C, FUNCT
@@ -44,10 +51,10 @@ enum class InstType : unsigned {
 // WORD: 4 bytes
 // HALFWORD: 2 bytes
 // BYTE: 1 byte
-enum class InstMemLen : unsigned {
+enum class InstSize : unsigned {
     WORD, HALF, BYTE
 };
 
 } /* namespace lb */
 
-#endif /* INSTENUM_H_ */
+#endif /* INSTTYPE_H_ */
