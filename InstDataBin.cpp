@@ -10,7 +10,7 @@
 namespace lb {
 
 InstDataBin::InstDataBin() {
-    this->instType = InstType::Undef;
+    this->instType = InstType::UNDEF;
     this->opCode = 0u;
     this->rs = 0u;
     this->rt = 0u;
@@ -103,7 +103,7 @@ void InstDataBin::setInst(const unsigned& val) {
 }
 
 void InstDataBin::setInstName(const unsigned& val) {
-    if (instType == InstType::Undef) {
+    if (instType == InstType::UNDEF) {
         instName = "";
     }
     else if (instType == InstType::R) {

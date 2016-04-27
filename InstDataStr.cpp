@@ -10,7 +10,7 @@
 namespace lb {
 
 InstDataStr::InstDataStr() {
-    this->instType = InstType::Undef;
+    this->instType = InstType::UNDEF;
     this->opCode = "";
     this->rs = "";
     this->rt = "";

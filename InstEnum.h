@@ -17,9 +17,9 @@ enum class InstElementType : unsigned {
 };
 
 // enum class for pipeline stages
-// ID, IF, EM, DM, WB, NONE, STALL
+// NONE, STALL, FORWARD
 enum class InstStage : unsigned {
-    ID, IF, EX, DM, WB, NONE, STALL, FORWARD
+    NONE, STALL, FORWARD
 };
 
 // enum class for basic operation type
@@ -37,7 +37,7 @@ enum class InstAction : unsigned {
 // enum class for instruction type
 // R-type, I-type, J-type, Specialized, Undefined
 enum class InstType : unsigned {
-    R, I, J, S, Undef
+    R, I, J, S, UNDEF
 };
 
 // enum class for memory size type
