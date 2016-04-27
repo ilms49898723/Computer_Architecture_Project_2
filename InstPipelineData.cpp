@@ -69,6 +69,10 @@ void InstPipelineData::setStalled(const bool& stalled) {
     this->stalled = stalled;
 }
 
+void InstPipelineData::setFlushed(const bool& flushed) {
+    this->flushed = flushed;
+}
+
 unsigned InstPipelineData::getALUOut() const {
     return ALUOut;
 }
@@ -91,6 +95,10 @@ unsigned InstPipelineData::getValC() const {
 
 bool InstPipelineData::isStalled() const {
     return stalled;
+}
+
+bool InstPipelineData::isFlushed() const {
+    return flushed;
 }
 
 InstDataBin InstPipelineData::getInst() const {

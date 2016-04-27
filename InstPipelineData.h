@@ -38,6 +38,8 @@ public:
 
     void setStalled(const bool& stalled);
 
+    void setFlushed(const bool& flushed);
+
     unsigned getALUOut() const;
 
     unsigned getMDR() const;
@@ -50,6 +52,8 @@ public:
 
     bool isStalled() const;
 
+    bool isFlushed() const;
+
     InstDataBin getInst() const;
 
 private:
@@ -60,6 +64,7 @@ private:
     unsigned valRt;
     unsigned valC;
     bool stalled;
+    bool flushed;
 };
 
 } /* namespace lb */
