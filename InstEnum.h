@@ -18,7 +18,7 @@ enum class InstElementType : unsigned {
 
 // enum class for pipeline stages
 // NONE, STALL, FORWARD
-enum class InstStage : unsigned {
+enum class InstState : unsigned {
     NONE, STALL, FORWARD
 };
 
