@@ -17,9 +17,9 @@ enum class InstElementType : unsigned {
 };
 
 // enum class for pipeline stages
-// NONE, STALL, FORWARD
+// NORMAL, STALL, FORWARD
 enum class InstState : unsigned {
-    NONE, STALL, FORWARD
+    NORMAL, STALL, FORWARD
 };
 
 // enum class for basic operation type
