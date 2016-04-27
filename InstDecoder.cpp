@@ -130,6 +130,9 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         ret.setOpCode(opCode);
         ret.setC(c);
         ret.setInstName(opCode);
+        if (opCode == 0x03u) {
+            ret.setRegWrite(31);
+        }
         return ret;
     }
     else if (opCode == 0x3Fu) {
