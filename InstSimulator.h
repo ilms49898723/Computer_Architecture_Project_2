@@ -25,11 +25,11 @@ private:
     constexpr static int maxn = 2048;
 
 private:
-    constexpr static int sIF = 0;
-    constexpr static int sID = 1;
-    constexpr static int sEX = 2;
-    constexpr static int sDM = 3;
-    constexpr static int sWB = 4;
+    constexpr static int IF = 0;
+    constexpr static int ID = 1;
+    constexpr static int EX = 2;
+    constexpr static int DM = 3;
+    constexpr static int WB = 4;
     constexpr static unsigned long long sStages = 5ll;
 
 public:
@@ -61,7 +61,6 @@ private:
     std::deque<InstElement> exForward;
 
 private:
-
     void dumpSnapshot(FILE* fp);
 
     void dumpPipelineInfo(FILE* fp, const int stage);
@@ -76,7 +75,7 @@ private:
 
     void instWB();
 
-    void instPush(const unsigned& pc);
+    void instPush();
 
     void instPop();
 
@@ -85,8 +84,6 @@ private:
     void instUnstall();
 
     void instFlush();
-
-    void instCleanUp();
 
     unsigned instALUR(const unsigned& funct);
 

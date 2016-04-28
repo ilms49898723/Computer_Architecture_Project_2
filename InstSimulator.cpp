@@ -56,16 +56,21 @@ void InstSimulator::simulate(FILE* snapshot, FILE* errorDump) {
         pipeline.push_back(InstPipelineData::nop);
     }
     while (!isFinished()) {
-        printf("size of pipeline %llu\n", pipeline.size());
+        // TODO: BUGS
+        printf("cycle %d\n", cycle);
         pcUpdated = false;
+        instPush();
+        instPop();
+        instUnstall();
+        pipeline.at(IF).setFlushed(false);
+        idForward.clear();
+        exForward.clear();
         instWB();
         instDM();
         instEX();
         instID();
         instIF();
-        dumpSnapshot(stdout);
         dumpSnapshot(snapshot);
-        instCleanUp();
         ++cycle;
         if (!pcUpdated) {
             pc += 4;
@@ -80,29 +85,32 @@ void InstSimulator::dumpSnapshot(FILE* fp) {
         fprintf(fp, "$%02d: 0x%08X\n", i, memory.getRegister(i));
     }
     fprintf(fp, "PC: 0x%08X\n", pc);
-    fprintf(fp, "IF: 0x%08X", pipeline.at(sIF).getInst().getInst());
-    dumpPipelineInfo(fp, sIF);
+    fprintf(fp, "IF: 0x%08X", pipeline.at(IF).getInst().getInst());
+    dumpPipelineInfo(fp, IF);
     fprintf(fp, "\n");
-    fprintf(fp, "ID: %s", pipeline.at(sID).getInst().getInstName().c_str());
-    dumpPipelineInfo(fp, sID);
+    fprintf(fp, "ID: %s", pipeline.at(ID).getInst().getInstName().c_str());
+    dumpPipelineInfo(fp, ID);
     fprintf(fp, "\n");
-    fprintf(fp, "EX: %s", pipeline.at(sEX).getInst().getInstName().c_str());
-    dumpPipelineInfo(fp, sEX);
+    fprintf(fp, "EX: %s", pipeline.at(EX).getInst().getInstName().c_str());
+    dumpPipelineInfo(fp, EX);
     fprintf(fp, "\n");
-    fprintf(fp, "DM: %s\n", pipeline.at(sDM).getInst().getInstName().c_str());
-    fprintf(fp, "WB: %s\n", pipeline.at(sWB).getInst().getInstName().c_str());
+    fprintf(fp, "DM: %s\n", pipeline.at(DM).getInst().getInstName().c_str());
+    fprintf(fp, "WB: %s\n", pipeline.at(WB).getInst().getInstName().c_str());
     fprintf(fp, "\n\n");
 }
 
 void InstSimulator::dumpPipelineInfo(FILE* fp, const int stage) {
     switch (stage) {
-        case sIF:
-            if (pipeline.at(sIF).isFlushed()) {
+        case IF:
+            if (pipeline.at(IF).isFlushed()) {
                 fprintf(fp, " to_be_flushed");
             }
+            else if (pipeline.at(IF).isStalled()) {
+                fprintf(fp, " to_be_stalled");
+            }
             break;
-        case sID:
-            if (pipeline.at(sID).isStalled()) {
+        case ID:
+            if (pipeline.at(ID).isStalled()) {
                 fprintf(fp, " to_be_stalled");
             }
             else {
@@ -111,7 +119,7 @@ void InstSimulator::dumpPipelineInfo(FILE* fp, const int stage) {
                 }
             }
             break;
-        case sEX:
+        case EX:
             for (const auto& item : exForward) {
                 fprintf(fp, " fwd_EX-DM_%s_$%d", item.type == InstElementType::RS ? "rs" : "rt", item.val);
             }
@@ -121,8 +129,12 @@ void InstSimulator::dumpPipelineInfo(FILE* fp, const int stage) {
 }
 
 void InstSimulator::instIF() {
-    if (pipeline.size() <= sStages) {
-        instPush(pc);
+    bool isFlushed = pipeline.at(IF).isFlushed();
+    bool isStalled = pipeline.at(IF).isStalled();
+    if (!pipeline.at(IF).isValid()) {
+        pipeline.at(IF) = instSet[pc >> 2];
+        pipeline.at(IF).setFlushed(isFlushed);
+        pipeline.at(IF).setStalled(isStalled);
     }
     else {
         pcUpdated = true;
@@ -130,11 +142,12 @@ void InstSimulator::instIF() {
 }
 
 void InstSimulator::instID() {
-    InstPipelineData& current = pipeline.at(sID);
-    const InstDataBin& currentInst = pipeline.at(sID).getInst();
+    InstPipelineData& current = pipeline.at(ID);
+    const InstDataBin& currentInst = pipeline.at(ID).getInst();
     if (isNOP(currentInst) || isHalt(currentInst)) {
         return;
     }
+    printf("check dependency for %s\n", currentInst.getInstName().c_str());
     InstState op = checkInstDependency(currentInst);
     // for stall
     if (op == InstState::STALL) {
@@ -143,19 +156,30 @@ void InstSimulator::instID() {
     }
     // check forwarding, get register value
     if (op == InstState::FORWARD) {
-        const std::vector<InstElement>& exWrite = pipeline.at(sEX).getInst().getRegWrite();
-        for (const auto& item : currentInst.getRegRead()) {
-            if (item.val == exWrite.at(0).val) {
-                if (item.type == InstElementType::RS) {
-                    current.setValRs(pipeline.at(sEX).getALUOut());
-                }
-                else if (item.type == InstElementType::RT) {
-                    current.setValRt(pipeline.at(sEX).getALUOut());
-                }
-                if (isBranch(currentInst)) {
+        if (isBranch(currentInst)) {
+            const std::vector<InstElement>& dmWrite = pipeline.at(DM).getInst().getRegWrite();
+            for (const auto& item : currentInst.getRegRead()) {
+                if (item.val == dmWrite.at(0).val) {
+                    if (item.type == InstElementType::RS) {
+                        current.setValRs(pipeline.at(DM).getALUOut());
+                    }
+                    else if (item.type == InstElementType::RT) {
+                        current.setValRt(pipeline.at(DM).getALUOut());
+                    }
                     idForward.push_back(item);
                 }
-                else {
+            }
+        }
+        else {
+            const std::vector<InstElement>& exWrite = pipeline.at(EX).getInst().getRegWrite();
+            for (const auto& item : currentInst.getRegRead()) {
+                if (item.val == exWrite.at(0).val) {
+                    if (item.type == InstElementType::RS) {
+                        current.setValRs(pipeline.at(EX).getALUOut());
+                    }
+                    else if (item.type == InstElementType::RT) {
+                        current.setValRt(pipeline.at(EX).getALUOut());
+                    }
                     exForward.push_back(item);
                 }
             }
@@ -206,85 +230,93 @@ void InstSimulator::instID() {
 }
 
 void InstSimulator::instEX() {
-    const InstDataBin& current = pipeline.at(sEX).getInst();
+    const InstDataBin& current = pipeline.at(EX).getInst();
     if (isNOP(current) || isHalt(current) || isBranch(current)) {
         return;
     }
     else if (current.getInstType() == InstType::R && current.getFunct() != 0x08u) {
         // type-R, not jr
-        pipeline.at(sEX).setALUOut(instALUR(current.getFunct()));
+        pipeline.at(EX).setALUOut(instALUR(current.getFunct()));
     }
     else if (current.getInstType() == InstType::I && current.getOpCode() != 0x04u && current.getOpCode() != 0x05u && current.getOpCode() != 0x07u) {
         // type-I, not beq, bne, bgtz
-        pipeline.at(sEX).setALUOut(instALUI(current.getOpCode()));
+        pipeline.at(EX).setALUOut(instALUI(current.getOpCode()));
     }
 }
 
 void InstSimulator::instDM() {
-    const InstDataBin& current = pipeline.at(sDM).getInst();
+    const InstDataBin& current = pipeline.at(DM).getInst();
     if (isMemoryLoad(current.getOpCode())) {
-        const unsigned& ALUOut = pipeline.at(sDM).getALUOut();
+        const unsigned& ALUOut = pipeline.at(DM).getALUOut();
         const unsigned MDR = instMemLoad(ALUOut, current.getOpCode());
-        pipeline.at(sDM).setMDR(MDR);
+        pipeline.at(DM).setMDR(MDR);
     }
 }
 
 void InstSimulator::instWB() {
-    const InstPipelineData& current = pipeline.at(sWB);
+    const InstPipelineData& current = pipeline.at(WB);
     if (isNOP(current.getInst()) || isHalt(current.getInst())) {
         return;
     }
     if (current.getInst().getRegWrite().empty()) {
         return;
     }
+    printf("%s has something to write\n", current.getInst().getInstName().c_str());
     if (isMemoryStore(current.getInst().getOpCode())) {
         unsigned val = memory.getRegister(current.getInst().getRt());
+        printf("write %u to mem %u\n", current.getALUOut(), val);
         instMemStore(current.getALUOut(), val, current.getInst().getOpCode());
     }
     else {
-        memory.setRegister(current.getInst().getRegWrite().at(0).val, current.getALUOut());
+        const unsigned& targetAddress = current.getInst().getRegWrite().at(0).val;
+        printf("write %u to reg %u\n", current.getALUOut(), targetAddress);
+        if (isMemoryLoad(current.getInst().getOpCode())) {
+            memory.setRegister(targetAddress, current.getMDR());
+        }
+        else {
+            memory.setRegister(targetAddress, current.getALUOut());
+        }
     }
 }
 
-void InstSimulator::instPush(const unsigned& pc) {
-    pipeline.push_front(instSet[pc >> 2]);
+void InstSimulator::instPush() {
+    if (pipeline.at(IF).isStalled()) {
+        pipeline.insert(pipeline.begin() + 2, InstPipelineData::nop);
+    }
+    else if (pipeline.at(IF).isFlushed()) {
+        pipeline.at(IF) = InstPipelineData::nop;
+    }
+    else {
+        pipeline.push_front(InstPipelineData(false));
+    }
 }
 
 void InstSimulator::instPop() {
-    pipeline.pop_back();
+    if (pipeline.size() > 5) {
+        pipeline.pop_back();
+    }
 }
 
 void InstSimulator::instStall() {
-    pipeline.at(sIF).setStalled(true);
-    pipeline.at(sID).setStalled(true);
+    pipeline.at(IF).setStalled(true);
+    pipeline.at(ID).setStalled(true);
+//    pipeline.insert(pipeline.begin() + 2, InstPipelineData::nop);
 }
 
 void InstSimulator::instUnstall() {
-    pipeline.at(sIF).setStalled(false);
-    pipeline.at(sID).setStalled(false);
+    pipeline.at(IF).setStalled(false);
+    pipeline.at(ID).setStalled(false);
 }
 
 void InstSimulator::instFlush() {
-    pipeline.at(sIF).setFlushed(true);
-}
-
-void InstSimulator::instCleanUp() {
-    if (pipeline.at(sIF).isFlushed()) {
-        pipeline[sIF] = InstPipelineData::nop;
-    }
-    if (pipeline.at(sID).isStalled()) {
-        pipeline.insert(pipeline.begin() + 2, InstPipelineData::nop);
-    }
-    instUnstall();
-    instPop();
-    idForward.clear();
-    exForward.clear();
+    pipeline.at(IF).setFlushed(true);
+//    pipeline[sIF] = InstPipelineData::nop;
 }
 
 unsigned InstSimulator::instALUR(const unsigned& funct) {
-    const unsigned& valRs = memory.getRegister(pipeline.at(sEX).getInst().getRs());
-    const unsigned& valRt = memory.getRegister(pipeline.at(sEX).getInst().getRt());
-    const unsigned& valC = pipeline.at(sEX).getInst().getC();
+    const unsigned& valRs = memory.getRegister(pipeline.at(EX).getInst().getRs());
+    const unsigned& valRt = memory.getRegister(pipeline.at(EX).getInst().getRt());
+    const unsigned& valC = pipeline.at(EX).getInst().getC();
     switch (funct) {
         case 0x20u: // add
             return valRs + valRt;
@@ -316,8 +348,8 @@ unsigned InstSimulator::instALUR(const unsigned& funct) {
 }
 
 unsigned InstSimulator::instALUI(const unsigned& opCode) {
-    const unsigned& valRs = memory.getRegister(pipeline.at(sEX).getInst().getRs());
-    const unsigned& valC = pipeline.at(sEX).getInst().getC();
+    const unsigned& valRs = memory.getRegister(pipeline.at(EX).getInst().getRs());
+    const unsigned& valC = pipeline.at(EX).getInst().getC();
     switch (opCode) {
         case 0x08u: // addi
             return toUnsigned(toSigned(valRs) + toSigned(valC, 16));
@@ -596,7 +628,17 @@ bool InstSimulator::isBranchJ(const unsigned& opCode) {
 }
 
 bool InstSimulator::hasToStall(const InstDataBin& inst) {
-    const std::vector<InstElement>& dmWrite = pipeline.at(sDM).getInst().getRegWrite();
+    printf("check whether need to be stalled\n");
+    printf("dm inst %s\n", pipeline.at(DM).getInst().getInstName().c_str());
+    printf("all items in dmwrite:\n");
+    for (InstElement item : pipeline.at(DM).getInst().getRegWrite()) {
+        printf("%d ", item.val);
+    }
+    printf("\n");
+    const std::vector<InstElement>& dmWrite = pipeline.at(DM).getInst().getRegWrite();
+    if (isBranch(inst)) {
+        return false;
+    }
     for (const auto& item : inst.getRegRead()) {
         if (!dmWrite.empty() && item.val && item.val == dmWrite.at(0).val) {
             return true;
@@ -606,8 +648,8 @@ bool InstSimulator::hasToStall(const InstDataBin& inst) {
 }
 
 bool InstSimulator::hasDependency(const InstDataBin& inst) {
-    const std::vector<InstElement>& exWrite = pipeline.at(sEX).getInst().getRegWrite();
-    const std::vector<InstElement>& dmWrite = pipeline.at(sDM).getInst().getRegWrite();
+    const std::vector<InstElement>& exWrite = pipeline.at(EX).getInst().getRegWrite();
+    const std::vector<InstElement>& dmWrite = pipeline.at(DM).getInst().getRegWrite();
     for (const auto& item : inst.getRegRead()) {
         if (!exWrite.empty() && item.val && item.val == exWrite.at(0).val) {
             return true;
