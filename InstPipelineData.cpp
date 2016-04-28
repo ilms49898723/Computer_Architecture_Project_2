@@ -19,6 +19,20 @@ InstPipelineData::InstPipelineData() {
     this->valRt = 0u;
     this->valC = 0u;
     this->stalled = false;
+    this->flushed = false;
+    this->valid = true;
+}
+
+InstPipelineData::InstPipelineData(const bool& valid) {
+    this->inst = InstDataBin();
+    this->ALUOut = 0u;
+    this->MDR = 0u;
+    this->valRs = 0u;
+    this->valRt = 0u;
+    this->valC = 0u;
+    this->stalled = false;
+    this->flushed = false;
+    this->valid = valid;
 }
 
 InstPipelineData::InstPipelineData(const InstDataBin& inst) {
@@ -29,6 +43,8 @@ InstPipelineData::InstPipelineData(const InstDataBin& inst) {
     this->valRt = 0u;
     this->valC = inst.getC();
     this->stalled = false;
+    this->flushed = false;
+    this->valid = true;
 }
 
 InstPipelineData::InstPipelineData(const InstDataBin& inst, const unsigned& data) {
@@ -39,6 +55,8 @@ InstPipelineData::InstPipelineData(const InstDataBin& inst, const unsigned& data
     this->valRt = 0u;
     this->valC = inst.getC();
     this->stalled = false;
+    this->flushed = false;
+    this->valid = true;
 }
 
 InstPipelineData::~InstPipelineData() {
@@ -99,6 +117,10 @@ bool InstPipelineData::isStalled() const {
 
 bool InstPipelineData::isFlushed() const {
     return flushed;
+}
+
+bool InstPipelineData::isValid() const {
+    return valid;
 }
 
 InstDataBin InstPipelineData::getInst() const {
