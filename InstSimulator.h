@@ -43,7 +43,7 @@ public:
 
     void loadImageD(const unsigned* src, const unsigned& len, const unsigned& sp);
 
-    void setOutputFile(FILE* snapshot, FILE* errorDump);
+    void setLogFile(FILE* snapshot, FILE* errorDump);
 
     void simulate();
 

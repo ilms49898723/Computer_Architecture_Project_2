@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
     lb::InstSimulator simulator;
     simulator.loadImageI(inst, iLen, pc);
     simulator.loadImageD(memory, dLen, sp);
-    simulator.setOutputFile(snapShot, errorDump);
+    simulator.setLogFile(snapShot, errorDump);
     simulator.simulate();
     fclose(snapShot);
     fclose(errorDump);

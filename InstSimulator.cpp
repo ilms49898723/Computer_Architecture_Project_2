@@ -47,14 +47,14 @@ void InstSimulator::loadImageD(const unsigned* src, const unsigned& len, const u
     }
 }
 
-void InstSimulator::setOutputFile(FILE* snapshot, FILE* errorDump) {
+void InstSimulator::setLogFile(FILE* snapshot, FILE* errorDump) {
     this->snapshot = snapshot;
     this->errorDump = errorDump;
 }
 
 void InstSimulator::simulate() {
     if (!snapshot || !errorDump) {
-        fprintf(stderr, "Output File Setting is not correct.\n");
+        fprintf(stderr, "Log File Setting is not correct.\n");
         return;
     }
     pc = pcOriginal;
@@ -199,7 +199,7 @@ void InstSimulator::instPush() {
 
 void InstSimulator::instPop() {
     // if size of pipeline > 5, pop the last one
-    if (pipeline.size() > 5) {
+    if (pipeline.size() > STAGES) {
         pipeline.pop_back();
     }
 }
