@@ -25,7 +25,7 @@ void InstSimulator::init() {
     pcOriginal = 0u;
     snapshot = nullptr;
     errorDump = nullptr;
-    for (int i = 0; i < InstSimulator::maxn; ++i) {
+    for (int i = 0; i < InstSimulator::MAXN; ++i) {
         instSet[i] = InstDecoder::decodeInstBin(0u);
     }
 }

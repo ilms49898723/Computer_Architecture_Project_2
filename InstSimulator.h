@@ -22,7 +22,7 @@ namespace lb {
 
 class InstSimulator {
 private:
-    constexpr static int maxn = 2048;
+    constexpr static int MAXN = 2048;
 
 private:
     constexpr static int IF = 0;
@@ -30,7 +30,7 @@ private:
     constexpr static int EX = 2;
     constexpr static int DM = 3;
     constexpr static int WB = 4;
-    constexpr static unsigned long long sStages = 5ll;
+    constexpr static unsigned long long STAGES = 5ll;
 
 public:
     InstSimulator();
@@ -56,7 +56,7 @@ private:
     FILE* snapshot;
     FILE* errorDump;
     InstMemory memory;
-    InstDataBin instSet[maxn];
+    InstDataBin instSet[MAXN];
 
 private:
     std::deque<InstPipelineData> pipeline;
