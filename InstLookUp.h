@@ -15,13 +15,22 @@ namespace lb {
 
 class InstLookUp {
 public:
-    // translate opCode -> readable string (ex. addi)
+    /**
+     * translate opCode -> readable string
+     * @param src opCode to translate
+     */
     static std::string opCodeLookUp(const unsigned& src);
 
-    // translate funct -> readable string (ex. add);
+    /**
+     * translate funct -> readable string
+     * @param src funct to translate
+     */
     static std::string functLookUp(const unsigned& src);
 
-    // translate reg -> numbers (ex. $0~$31)
+    /**
+     * translate register name -> numbers
+     * @param src register name to translate
+     */
     static std::string registerLookUpNumber(const unsigned& src);
 
 private:

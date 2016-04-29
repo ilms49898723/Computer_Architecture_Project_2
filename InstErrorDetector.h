@@ -16,24 +16,43 @@
 
 namespace lb {
 
-// detect error
-// write to $0
-// overflow
-// memory addr overflow
-// data misaligned
+
+/**
+ * detect error
+ * write to $0
+ * overflow
+ * memory address overflow
+ * data misaligned
+ */
 class InstErrorDetector {
 public:
-    // reg: addr to check
+    /**
+     * check whether the register is writable(i.e. not $0)
+     * @param reg register to check
+     */
     static bool isRegWritable(const unsigned& reg);
 
-    // check overflow
-    // check src0 op src1, where op == ADD or SUB
+    /**
+     * check number overflow,
+     * src0 op src1
+     * @param src0 left number
+     * @param src1 right number
+     * @param op operator
+     */
     static bool isOverflowed(const int& src0, const int& src1, const InstOpType& op);
 
-    // check memory address(should between 0 to 1023)
+    /**
+     * check memory address(0 to 1023)
+     * @param addr memory address to check
+     * @param type WORD, HALFWORD, BYTE
+     */
     static bool isValidMemoryAddr(const unsigned& addr, const InstSize& type);
 
-    // check misaligned address
+    /**
+     * check misaligned address
+     * @param addr memory address to check
+     * @param type WORD, HALFWORD, BYTE
+     */
     static bool isAlignedAddr(const unsigned& addr, const InstSize& type);
 };
 

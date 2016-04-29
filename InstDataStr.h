@@ -14,7 +14,9 @@
 
 namespace lb {
 
-// Data structure to store readable Instruction set using "String"
+/**
+ * Data structure to translate to readable Instruction set, stored by std::string
+ */
 class InstDataStr {
 public:
     InstDataStr();

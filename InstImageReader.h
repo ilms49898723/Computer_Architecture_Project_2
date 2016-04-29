@@ -14,7 +14,9 @@
 
 namespace lb {
 
-// read iimage.bin, dimage.bin using C I/O
+/**
+ * a reader to read iimage.bin, dimage.bin by using C I/O
+ */
 class InstImageReader {
 public:
     static unsigned readImageI(const std::string& filePath, unsigned* dst, unsigned* pc);

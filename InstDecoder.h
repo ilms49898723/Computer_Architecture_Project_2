@@ -17,15 +17,24 @@
 
 namespace lb {
 
-// Decode hex-decimal format instruction set to readable string
-// All static functions
-// return type InstData defined in "InstData.h"
+/**
+ * Decode hex-decimal format instruction set to readable string
+ * All static functions
+ * return type InstData defined in "InstData.h"
+ */
 class InstDecoder {
 public:
-    // decode instruction set, saved by string
+
+    /**
+     * decode instruction set, saved by string
+     * @param src instruction to decode
+     */
     static InstDataStr decodeInstStr(const unsigned& src);
 
-    // decode instruction set, save by unsigned
+    /**
+     * decode instruction set, save by unsigned
+     * @param src instruction to decode
+     */
     static InstDataBin decodeInstBin(const unsigned& src);
 };
 
