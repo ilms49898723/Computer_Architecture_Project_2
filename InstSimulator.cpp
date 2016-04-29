@@ -9,6 +9,13 @@
 
 namespace lb {
 
+const unsigned InstSimulator::IF = 0u;
+const unsigned InstSimulator::ID = 1u;
+const unsigned InstSimulator::EX = 2u;
+const unsigned InstSimulator::DM = 3u;
+const unsigned InstSimulator::WB = 4u;
+const unsigned InstSimulator::STAGES = 5u;
+
 InstSimulator::InstSimulator() {
     init();
 }
@@ -26,7 +33,7 @@ void InstSimulator::init() {
     snapshot = nullptr;
     errorDump = nullptr;
     for (int i = 0; i < InstSimulator::MAXN; ++i) {
-        instSet[i] = InstDecoder::decodeInstBin(0u);
+        instList[i] = InstDecoder::decodeInstBin(0u);
     }
 }
 
@@ -34,7 +41,7 @@ void InstSimulator::loadImageI(const unsigned* src, const unsigned& len, const u
     this->pcOriginal = pc;
     unsigned instSetIdx = pc >> 2;
     for (unsigned i = 0; i < len; ++i) {
-        instSet[instSetIdx] = InstDecoder::decodeInstBin(src[i]);
+        instList[instSetIdx] = InstDecoder::decodeInstBin(src[i]);
         ++instSetIdx;
     }
 }
@@ -65,29 +72,39 @@ void InstSimulator::simulate() {
         pipeline.push_back(InstPipelineData::nop);
     }
     while (!isFinished()) {
-        // TODO: REWRITE
+        printf("cycle %d start, ", cycle);
         // reset pcUpdated flag
-        pcUpdated = false;
+        pcUpdated = pipeline.at(0).isStalled();
+        printf("pcUpdated = %d, pc = %x\n", pcUpdated, pc);
         // wb
         instWB();
+        printf("after wb %d, %x\n", pcUpdated, pc);
         // dm
         instDM();
+        printf("after dm %d, %x\n", pcUpdated, pc);
         // ex
         instEX();
+        printf("after ex %d, %x\n", pcUpdated, pc);
         // id
         instID();
+        printf("after id %d, %x\n", pcUpdated, pc);
         // if
         instIF();
+        printf("after if %d, %x\n", pcUpdated, pc);
         // pop the last one(wb)
         instPop();
+        // clean message buffer
+        idForward.clear();
+        exForward.clear();
         // deal with stall, flush
-        instPreprocess();
-        // TODO: check dependency in current pipeline
+        instCleanUp();
+        instSetDependency();
         dumpSnapshot(snapshot);
-        ++cycle;
         if (!pcUpdated) {
             pc += 4;
         }
+        printf("cycle %u end, pc = %u\n\n", cycle, pc);
+        ++cycle;
     }
 }
 
@@ -142,7 +159,7 @@ void InstSimulator::dumpPipelineInfo(FILE* fp, const int stage) {
 
 void InstSimulator::instIF() {
     if (!pipeline.at(IF).isStalled()) {
-        pipeline.push_front(instSet[pc >> 2]);
+        pipeline.push_front(instList[pc >> 2]);
     }
     else {
         pcUpdated = true;
@@ -150,11 +167,26 @@ void InstSimulator::instIF() {
 }
 
 void InstSimulator::instID() {
-    // TODO: rewrite
     InstPipelineData& pipelineData = pipeline.at(ID);
     const InstDataBin& inst = pipeline.at(ID).getInst();
-    if (isNOP(inst) || isHalt(inst)) {
+    if (isNOP(inst) || isHalt(inst) || !isBranch(inst)) {
         return;
+    }
+    if (pipelineData.getBranchResult()) {
+        pcUpdated = true;
+        if (isBranchR(inst)) {
+            pc = pipelineData.getValRs();
+        }
+        else if (isBranchI(inst)) {
+            int newPc = toSigned(pc) + 4 + 4 * toSigned(pipelineData.getValC(), 16);
+            pc = toUnsigned(newPc);
+        }
+        else {
+            if (inst.getOpCode() == 0x03u) {
+                pipelineData.setALUOut(instALUJ());
+            }
+            pc = ((pc + 4) & 0xF0000000u) | (pipelineData.getValC() * 4);
+        }
     }
 }
 
@@ -229,17 +261,117 @@ void InstSimulator::instFlush() {
     pipeline.at(IF).setFlushed(true);
 }
 
-void InstSimulator::instForward(const InstDataBin& inst) {
-    // TODO: REWRITE
-}
-
-void InstSimulator::instPreprocess() {
+void InstSimulator::instCleanUp() {
     // check every pipeline stage(stall, flush)
     if (pipeline.at(IF).isFlushed()) {
         pipeline.at(IF) = InstPipelineData::nop;
     }
     if (pipeline.at(ID).isStalled()) {
         pipeline.insert(pipeline.begin() + 2, InstPipelineData::nop);
+        instUnstall();
+    }
+}
+
+void InstSimulator::instSetDependency() {
+    instSetDependencyID();
+    instSetDependencyEX();
+}
+
+void InstSimulator::instSetDependencyID() {
+    InstPipelineData& pipelineData = pipeline.at(ID);
+    const InstDataBin& inst = pipeline.at(ID).getInst();
+    const std::vector<InstElement>& dmWrite = pipeline.at(DM).getInst().getRegWrite();
+    const std::vector<InstElement>& idRead = pipeline.at(ID).getInst().getRegRead();
+    if (isNOP(inst) || isHalt(inst)) {
+        return;
+    }
+    InstState action = checkIDDependency();
+    if (action == InstState::NONE) {
+        return;
+    }
+    else if (action == InstState::STALL) {
+        instStall();
+        return;
+    }
+    else{
+        if (isBranch(inst)) {
+            for (const auto& item : idRead) {
+                if (!dmWrite.empty() && item.val && item.val == dmWrite.at(0).val) {
+                    pipelineData.setVal(pipeline.at(DM).getALUOut(), item.type);
+                    idForward.push_back(item);
+                }
+                else {
+                    const InstPipelineData& wbData = pipeline.at(WB);
+                    if (wbData.getInst().getRegWrite().at(0).val == item.val) {
+                        if (isMemoryLoad(wbData.getInst().getOpCode())) {
+                            pipelineData.setVal(wbData.getMDR(), item.type);
+                        }
+                        else {
+                            pipelineData.setVal(wbData.getALUOut(), item.type);
+                        }
+                    }
+                    else {
+                        pipelineData.setVal(memory.getRegister(item.val), item.type);
+                    }
+                }
+            }
+            bool result = instPredictBranch();
+            pipelineData.setBranchResult(result);
+            if (result) {
+                instFlush();
+            }
+        }
+        else {
+            return;
+        }
+    }
+}
+
+void InstSimulator::instSetDependencyEX() {
+    InstPipelineData& pipelineData = pipeline.at(EX);
+    const InstDataBin& inst = pipeline.at(EX).getInst();
+    const std::vector<InstElement>& dmWrite = pipeline.at(DM).getInst().getRegWrite();
+    const std::vector<InstElement>& exRead = pipeline.at(EX).getInst().getRegRead();
+    if (isNOP(inst) || isHalt(inst) || isBranch(inst)) {
+        return;
+    }
+    for (const auto& item : exRead) {
+        if (!dmWrite.empty() && item.val && item.val == dmWrite.at(0).val) {
+            pipelineData.setVal(pipeline.at(DM).getALUOut(), item.type);
+            exForward.push_back(item);
+        }
+        else {
+            pipelineData.setVal(memory.getRegister(item.val), item.type);
+        }
+    }
+}
+
+bool InstSimulator::instPredictBranch() {
+    const InstPipelineData& pipelineData = pipeline.at(ID);
+    const InstDataBin& inst = pipeline.at(ID).getInst();
+    if (isBranchR(inst)) {
+        return true;
+    }
+    else if (isBranchI(inst)) {
+        bool result;
+        switch (inst.getOpCode()) {
+            case 0x04u:
+                result = (pipelineData.getValRs() == pipelineData.getValRt());
+                break;
+            case 0x05u:
+                result = (pipelineData.getValRs() != pipelineData.getValRt());
+                break;
+            case 0x07u:
+                result = (pipelineData.getValRs() > 0u);
+                break;
+            default:
+                result = false;
+                break;
+        }
+        return result;
+    }
+    else {
+        return true;
     }
 }
 
@@ -307,6 +439,10 @@ unsigned InstSimulator::instALUI(const unsigned& opCode) {
         default:
             return 0u;
     }
+}
+
+unsigned InstSimulator::instALUJ() {
+    return pc + 4;
 }
 
 unsigned InstSimulator::instMemLoad(const unsigned& addr, const unsigned& opCode) {
@@ -387,58 +523,55 @@ bool InstSimulator::isMemoryStore(const unsigned& opCode) {
 }
 
 bool InstSimulator::isBranch(const InstDataBin& inst) {
-    return isBranchR(inst.getFunct()) ||
-           isBranchI(inst.getOpCode()) ||
-           isBranchJ(inst.getOpCode());
+    return isBranchR(inst) ||
+           isBranchI(inst) ||
+           isBranchJ(inst);
 }
 
-bool InstSimulator::isBranchR(const unsigned& funct) {
-    return funct == 0x08u;
+bool InstSimulator::isBranchR(const InstDataBin& inst) {
+    return inst.getInstType() == InstType::R && inst.getFunct() == 0x08u;
 }
 
-bool InstSimulator::isBranchI(const unsigned& opCode) {
-    return opCode == 0x04u || opCode == 0x05u || opCode == 0x07u;
-}
-
-bool InstSimulator::isBranchJ(const unsigned& opCode) {
-    return opCode == 0x02u || opCode == 0x03u;
-}
-
-bool InstSimulator::hasToStall(const unsigned long long& step, const unsigned long long& dependency) {
-    if (step != ID) {
+bool InstSimulator::isBranchI(const InstDataBin& inst) {
+    if (inst.getInstType() != InstType::I) {
         return false;
     }
-    const std::vector<InstElement>& exWrite = pipeline.at(EX).getInst().getRegWrite();
-    const std::vector<InstElement>& dmWrite = pipeline.at(DM).getInst().getRegWrite();
-    const std::vector<InstElement>& idRead = pipeline.at(step).getInst().getRegRead();
-    const InstDataBin& inst = pipeline.at(step).getInst();
+    return inst.getOpCode() == 0x04u || inst.getOpCode() == 0x05u || inst.getOpCode() == 0x07u;
+}
+
+bool InstSimulator::isBranchJ(const InstDataBin& inst) {
+    if (inst.getInstType() != InstType::J) {
+        return false;
+    }
+    return inst.getOpCode() == 0x02u || inst.getOpCode() == 0x03u;
+}
+
+bool InstSimulator::hasToStall(const unsigned long long& dependency) {
+    const InstDataBin& inst = pipeline.at(ID).getInst();
     // no dependency
     if (dependency == STAGES) {
         return false;
     }
-    // lw or lh or lb. Because no MEM/WB to EX forwarding, need stall
+    // lw or lh or lb. Because no MEM/WB to EX forwarding, always need stall
     if (isMemoryLoad(inst.getOpCode())) {
         return true;
     }
     // if is branch instruction, only can get from EX/DM] stage
     // if not branch instruction, only can get from [EX/DM stage
-    if (isBranch(inst) && dependency < DM) {
-        return true;
+    if (isBranch(inst)) {
+        return dependency < DM;
     }
     else {
         return dependency != EX;
     }
 }
 
-unsigned long long InstSimulator::getDependency(const unsigned long long& step) {
+unsigned long long InstSimulator::getDependency() {
     // return STAGES: no dependency, EX: on ex, DM: on dm
-    if (step != ID && step != EX) {
-        return STAGES;
-    }
     const std::vector<InstElement>& exWrite = pipeline.at(EX).getInst().getRegWrite();
     const std::vector<InstElement>& dmWrite = pipeline.at(DM).getInst().getRegWrite();
-    const std::vector<InstElement>& idRead = pipeline.at(step).getInst().getRegRead();
-    unsigned long long stage = STAGES;
+    const std::vector<InstElement>& idRead = pipeline.at(ID).getInst().getRegRead();
+    unsigned stage = STAGES;
     for (const auto& item : idRead) {
         if (!exWrite.empty() && item.val && item.val == exWrite.at(0).val) {
             stage = std::min(stage, EX);
@@ -450,23 +583,18 @@ unsigned long long InstSimulator::getDependency(const unsigned long long& step) 
     return stage;
 }
 
-InstState InstSimulator::checkStepDependency(const unsigned long long& step) {
-    unsigned long long dependency = getDependency(step);
+InstState InstSimulator::checkIDDependency() {
+    unsigned long long dependency = getDependency();
     if (dependency == STAGES) {
         return InstState::NONE;
     }
     else {
-        bool stall = hasToStall(step, dependency);
+        bool stall = hasToStall(dependency);
         if (stall) {
             return InstState::STALL;
         }
         else {
-            if (dependency == EX) {
-                return InstState::EX;
-            }
-            else {
-                return InstState::DM;
-            }
+            return InstState::FORWARD;
         }
     }
 }

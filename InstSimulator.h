@@ -25,12 +25,12 @@ private:
     constexpr static int MAXN = 2048;
 
 private:
-    constexpr static unsigned long long IF = 0;
-    constexpr static unsigned long long ID = 1;
-    constexpr static unsigned long long EX = 2;
-    constexpr static unsigned long long DM = 3;
-    constexpr static unsigned long long WB = 4;
-    constexpr static unsigned long long STAGES = 5ll;
+    const static unsigned IF;
+    const static unsigned ID;
+    const static unsigned EX;
+    const static unsigned DM;
+    const static unsigned WB;
+    const static unsigned STAGES;
 
 public:
     InstSimulator();
@@ -56,7 +56,7 @@ private:
     FILE* snapshot;
     FILE* errorDump;
     InstMemory memory;
-    InstDataBin instSet[MAXN];
+    InstDataBin instList[MAXN];
 
 private:
     std::deque<InstPipelineData> pipeline;
@@ -86,13 +86,21 @@ private:
 
     void instFlush();
 
-    void instForward(const InstDataBin& inst);
+    void instCleanUp();
 
-    void instPreprocess();
+    void instSetDependency();
+
+    void instSetDependencyID();
+
+    void instSetDependencyEX();
+
+    bool instPredictBranch();
 
     unsigned instALUR(const unsigned& funct);
 
     unsigned instALUI(const unsigned& opCode);
+
+    unsigned instALUJ();
 
     unsigned instMemLoad(const unsigned& addr, const unsigned& opCode);
 
@@ -110,17 +118,17 @@ private:
 
     bool isBranch(const InstDataBin& inst);
 
-    bool isBranchR(const unsigned& funct);
+    bool isBranchR(const InstDataBin& inst);
 
-    bool isBranchI(const unsigned& opCode);
+    bool isBranchI(const InstDataBin& inst);
 
-    bool isBranchJ(const unsigned& opCode);
+    bool isBranchJ(const InstDataBin& inst);
 
-    bool hasToStall(const unsigned long long& step, const unsigned long long& dependency);
+    bool hasToStall(const unsigned long long& dependency);
 
-    unsigned long long getDependency(const unsigned long long& step);
+    unsigned long long getDependency();
 
-    InstState checkStepDependency(const unsigned long long& step);
+    InstState checkIDDependency();
 
     InstAction detectWriteRegZero(const unsigned& addr);
 
