@@ -19,11 +19,11 @@ enum class InstElementType : unsigned {
 };
 
 /**
- * enum class for pipeline stages
- * NORMAL, STALL, FORWARD
+ * enum class for pipeline states
+ * IF, ID, EX, DM, WB, NONE, STALL
  */
 enum class InstState : unsigned {
-    NORMAL, STALL, FORWARD
+    IF, ID, EX, DM, WB, NONE, STALL
 };
 
 /**

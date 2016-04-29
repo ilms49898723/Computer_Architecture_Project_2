@@ -25,11 +25,11 @@ private:
     constexpr static int MAXN = 2048;
 
 private:
-    constexpr static int IF = 0;
-    constexpr static int ID = 1;
-    constexpr static int EX = 2;
-    constexpr static int DM = 3;
-    constexpr static int WB = 4;
+    constexpr static unsigned long long IF = 0;
+    constexpr static unsigned long long ID = 1;
+    constexpr static unsigned long long EX = 2;
+    constexpr static unsigned long long DM = 3;
+    constexpr static unsigned long long WB = 4;
     constexpr static unsigned long long STAGES = 5ll;
 
 public:
@@ -78,8 +78,6 @@ private:
 
     void instWB();
 
-    void instPush();
-
     void instPop();
 
     void instStall();
@@ -118,11 +116,11 @@ private:
 
     bool isBranchJ(const unsigned& opCode);
 
-    bool hasToStall(const InstDataBin& inst);
+    bool hasToStall(const unsigned long long& step, const unsigned long long& dependency);
 
-    bool hasDependency(const InstDataBin& inst);
+    unsigned long long getDependency(const unsigned long long& step);
 
-    InstState checkInstDependency(const InstDataBin& inst);
+    InstState checkStepDependency(const unsigned long long& step);
 
     InstAction detectWriteRegZero(const unsigned& addr);
 

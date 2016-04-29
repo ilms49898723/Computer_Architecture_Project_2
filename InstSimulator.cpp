@@ -66,14 +66,22 @@ void InstSimulator::simulate() {
     }
     while (!isFinished()) {
         // TODO: REWRITE
+        // reset pcUpdated flag
         pcUpdated = false;
-        instPreprocess();
+        // wb
         instWB();
+        // dm
         instDM();
+        // ex
         instEX();
+        // id
         instID();
+        // if
         instIF();
+        // pop the last one(wb)
         instPop();
+        // deal with stall, flush
+        instPreprocess();
         // TODO: check dependency in current pipeline
         dumpSnapshot(snapshot);
         ++cycle;
@@ -133,11 +141,21 @@ void InstSimulator::dumpPipelineInfo(FILE* fp, const int stage) {
 }
 
 void InstSimulator::instIF() {
-    // TODO: rewrite
+    if (!pipeline.at(IF).isStalled()) {
+        pipeline.push_front(instSet[pc >> 2]);
+    }
+    else {
+        pcUpdated = true;
+    }
 }
 
 void InstSimulator::instID() {
     // TODO: rewrite
+    InstPipelineData& pipelineData = pipeline.at(ID);
+    const InstDataBin& inst = pipeline.at(ID).getInst();
+    if (isNOP(inst) || isHalt(inst)) {
+        return;
+    }
 }
 
 void InstSimulator::instEX() {
@@ -193,15 +211,8 @@ void InstSimulator::instWB() {
     }
 }
 
-void InstSimulator::instPush() {
-    // TODO: REWRITE
-}
-
 void InstSimulator::instPop() {
-    // if size of pipeline > 5, pop the last one
-    if (pipeline.size() > STAGES) {
-        pipeline.pop_back();
-    }
+    pipeline.pop_back();
 }
 
 void InstSimulator::instStall() {
@@ -393,19 +404,71 @@ bool InstSimulator::isBranchJ(const unsigned& opCode) {
     return opCode == 0x02u || opCode == 0x03u;
 }
 
-bool InstSimulator::hasToStall(const InstDataBin& inst) {
-    // TODO: REWRITE
-    return false;
+bool InstSimulator::hasToStall(const unsigned long long& step, const unsigned long long& dependency) {
+    if (step != ID) {
+        return false;
+    }
+    const std::vector<InstElement>& exWrite = pipeline.at(EX).getInst().getRegWrite();
+    const std::vector<InstElement>& dmWrite = pipeline.at(DM).getInst().getRegWrite();
+    const std::vector<InstElement>& idRead = pipeline.at(step).getInst().getRegRead();
+    const InstDataBin& inst = pipeline.at(step).getInst();
+    // no dependency
+    if (dependency == STAGES) {
+        return false;
+    }
+    // lw or lh or lb. Because no MEM/WB to EX forwarding, need stall
+    if (isMemoryLoad(inst.getOpCode())) {
+        return true;
+    }
+    // if is branch instruction, only can get from EX/DM] stage
+    // if not branch instruction, only can get from [EX/DM stage
+    if (isBranch(inst) && dependency < DM) {
+        return true;
+    }
+    else {
+        return dependency != EX;
+    }
 }
 
-bool InstSimulator::hasDependency(const InstDataBin& inst) {
-    // TODO: REWRITE
-    return false;
+unsigned long long InstSimulator::getDependency(const unsigned long long& step) {
+    // return STAGES: no dependency, EX: on ex, DM: on dm
+    if (step != ID && step != EX) {
+        return STAGES;
+    }
+    const std::vector<InstElement>& exWrite = pipeline.at(EX).getInst().getRegWrite();
+    const std::vector<InstElement>& dmWrite = pipeline.at(DM).getInst().getRegWrite();
+    const std::vector<InstElement>& idRead = pipeline.at(step).getInst().getRegRead();
+    unsigned long long stage = STAGES;
+    for (const auto& item : idRead) {
+        if (!exWrite.empty() && item.val && item.val == exWrite.at(0).val) {
+            stage = std::min(stage, EX);
+        }
+        if (!dmWrite.empty() && item.val && item.val == dmWrite.at(0).val) {
+            stage = std::min(stage, DM);
+        }
+    }
+    return stage;
 }
 
-InstState InstSimulator::checkInstDependency(const InstDataBin& inst) {
-    // TODO: REWRITE
-    return InstState::NORMAL;
+InstState InstSimulator::checkStepDependency(const unsigned long long& step) {
+    unsigned long long dependency = getDependency(step);
+    if (dependency == STAGES) {
+        return InstState::NONE;
+    }
+    else {
+        bool stall = hasToStall(step, dependency);
+        if (stall) {
+            return InstState::STALL;
+        }
+        else {
+            if (dependency == EX) {
+                return InstState::EX;
+            }
+            else {
+                return InstState::DM;
+            }
+        }
+    }
 }
 
 InstAction InstSimulator::detectWriteRegZero(const unsigned& addr) {
