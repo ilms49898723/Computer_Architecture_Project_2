@@ -20,8 +20,6 @@ public:
 public:
     InstPipelineData();
 
-    InstPipelineData(const bool& valid);
-
     InstPipelineData(const InstDataBin& inst);
 
     InstPipelineData(const InstDataBin& inst, const unsigned& data);
@@ -60,8 +58,6 @@ public:
 
     bool isFlushed() const;
 
-    bool isValid() const;
-
     InstDataBin getInst() const;
 
 private:
@@ -73,7 +69,6 @@ private:
     unsigned valC;
     bool stalled;
     bool flushed;
-    bool valid;
 };
 
 } /* namespace lb */
