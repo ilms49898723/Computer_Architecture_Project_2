@@ -50,9 +50,10 @@ void InstSimulator::loadImageD(const unsigned* src, const unsigned& len, const u
 void InstSimulator::simulate(FILE* snapshot, FILE* errorDump) {
     this->snapshot = snapshot;
     this->errorDump = errorDump;
-    cycle = 0u;
     pc = pcOriginal;
+    cycle = 0u;
     alive = true;
+    // fill pipeline with nop
     for (int i = 0; i < 5; ++i) {
         pipeline.push_back(InstPipelineData::nop);
     }
@@ -123,10 +124,10 @@ void InstSimulator::dumpPipelineInfo(FILE* fp, const int stage) {
 }
 
 void InstSimulator::instIF() {
-    instPush();
     if (pipeline.at(IF).isStalled()) {
         pcUpdated = true;
     }
+    instPush();
 }
 
 void InstSimulator::instID() {
@@ -224,7 +225,7 @@ void InstSimulator::instWB() {
 
 void InstSimulator::instPush() {
     if (pipeline.at(IF).isStalled()) {
-        pipeline.insert(pipeline.begin() + 2, InstPipelineData::nop);
+        return;
     }
     else if (pipeline.at(IF).isFlushed()) {
         pipeline.at(IF) = InstPipelineData::nop;
