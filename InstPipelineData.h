@@ -32,6 +32,8 @@ public:
 
     void setMDR(const unsigned& MDR);
 
+    void setVal(const unsigned& src, const InstElementType& type);
+
     void setValRs(const unsigned& rs);
 
     void setValRt(const unsigned& rt);
@@ -45,6 +47,8 @@ public:
     unsigned getALUOut() const;
 
     unsigned getMDR() const;
+
+    unsigned getVal(const InstElementType& type) const;
 
     unsigned getValRs() const;
 

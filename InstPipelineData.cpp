@@ -71,6 +71,18 @@ void InstPipelineData::setMDR(const unsigned& mdr) {
     this->MDR = mdr;
 }
 
+void InstPipelineData::setVal(const unsigned& src, const InstElementType& type) {
+    if (type == InstElementType::RS) {
+        setValRs(src);
+    }
+    else if (type == InstElementType::RT) {
+        setValRt(src);
+    }
+    else if (type == InstElementType::C) {
+        setValC(src);
+    }
+}
+
 void InstPipelineData::setValRs(const unsigned& rs) {
     this->valRs = rs;
 }
@@ -97,6 +109,18 @@ unsigned InstPipelineData::getALUOut() const {
 
 unsigned InstPipelineData::getMDR() const {
     return MDR;
+}
+
+unsigned InstPipelineData::getVal(const InstElementType& type) const {
+    if (type == InstElementType::RS) {
+        return getValRs();
+    }
+    else if (type == InstElementType::RT) {
+        return getValRt();
+    }
+    else if (type == InstElementType::C) {
+        return getValC();
+    }
 }
 
 unsigned InstPipelineData::getValRs() const {
