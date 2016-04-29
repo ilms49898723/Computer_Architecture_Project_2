@@ -22,8 +22,8 @@ void InstSimulator::init() {
     idForward.clear();
     exForward.clear();
     memory.init();
-    cycle = 0;
     pc = 0u;
+    cycle = 0u;
     snapshot = nullptr;
     errorDump = nullptr;
     isAlive = true;
@@ -72,7 +72,7 @@ void InstSimulator::simulate(FILE* snapshot, FILE* errorDump) {
 }
 
 void InstSimulator::dumpSnapshot(FILE* fp) {
-    fprintf(fp, "cycle %d\n", cycle);
+    fprintf(fp, "cycle %u\n", cycle);
     for (unsigned i = 0; i < 32; ++i) {
         fprintf(fp, "$%02d: 0x%08X\n", i, memory.getRegister(i));
     }
@@ -439,21 +439,21 @@ InstState InstSimulator::checkInstDependency(const InstDataBin& inst) {
 
 InstAction InstSimulator::detectWriteRegZero(const unsigned& addr) {
     if (!InstErrorDetector::isRegWritable(addr)) {
-        fprintf(errorDump, "In cycle %d: Write $0 Error\n", cycle);
+        fprintf(errorDump, "In cycle %u: Write $0 Error\n", cycle);
     }
     return InstAction::CONTINUE;
 }
 
 InstAction InstSimulator::detectNumberOverflow(const int& a, const int& b, const InstOpType& op) {
     if (InstErrorDetector::isOverflowed(a, b, op)) {
-        fprintf(errorDump, "In cycle %d: Number Overflow\n", cycle);
+        fprintf(errorDump, "In cycle %u: Number Overflow\n", cycle);
     }
     return InstAction::CONTINUE;
 }
 
 InstAction InstSimulator::detectMemAddrOverflow(const unsigned& addr, const InstSize& type) {
     if (!InstErrorDetector::isValidMemoryAddr(addr, type)) {
-        fprintf(errorDump, "In cycle %d: Address Overflow\n", cycle);
+        fprintf(errorDump, "In cycle %u: Address Overflow\n", cycle);
         isAlive = false;
         return InstAction::HALT;
     }
@@ -462,7 +462,7 @@ InstAction InstSimulator::detectMemAddrOverflow(const unsigned& addr, const Inst
 
 InstAction InstSimulator::detectDataMisaligned(const unsigned& addr, const InstSize& type) {
     if (!InstErrorDetector::isAlignedAddr(addr, type)) {
-        fprintf(errorDump, "In cycle %d: Misalignment Error\n", cycle);
+        fprintf(errorDump, "In cycle %u: Misalignment Error\n", cycle);
         isAlive = false;
         return InstAction::HALT;
     }

@@ -48,8 +48,8 @@ public:
 private:
     bool isAlive;
     bool pcUpdated;
-    int cycle;
     unsigned pc;
+    unsigned cycle;
     FILE* snapshot;
     FILE* errorDump;
     InstMemory memory;
