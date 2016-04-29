@@ -85,6 +85,8 @@ private:
 
     void instFlush();
 
+    void instForward(const InstDataBin& inst);
+
     unsigned instALUR(const unsigned& funct);
 
     unsigned instALUI(const unsigned& opCode);
@@ -94,8 +96,6 @@ private:
     unsigned instMemLoad(const unsigned& addr, const unsigned& opCode);
 
     void instMemStore(const unsigned& addr, const unsigned& val, const unsigned& opCode);
-
-    bool checkInst(const InstDataBin& inst);
 
     bool isNOP(const InstDataBin& inst);
 

@@ -56,26 +56,18 @@ void InstSimulator::simulate(FILE* snapshot, FILE* errorDump) {
         pipeline.push_back(InstPipelineData::nop);
     }
     while (!isFinished()) {
-        // TODO: BUGS
-        printf("cycle %d\n", cycle);
-        pcUpdated = false;
-        instPush();
-        instPop();
-        instUnstall();
-        pipeline.at(IF).setFlushed(false);
-        idForward.clear();
-        exForward.clear();
+        // TODO: REWRITE
         instWB();
         instDM();
         instEX();
         instID();
         instIF();
+        instPop();
         dumpSnapshot(snapshot);
         ++cycle;
         if (!pcUpdated) {
             pc += 4;
         }
-        pcUpdated = false;
     }
 }
 
@@ -129,14 +121,8 @@ void InstSimulator::dumpPipelineInfo(FILE* fp, const int stage) {
 }
 
 void InstSimulator::instIF() {
-    bool isFlushed = pipeline.at(IF).isFlushed();
-    bool isStalled = pipeline.at(IF).isStalled();
-    if (!pipeline.at(IF).isValid()) {
-        pipeline.at(IF) = instSet[pc >> 2];
-        pipeline.at(IF).setFlushed(isFlushed);
-        pipeline.at(IF).setStalled(isStalled);
-    }
-    else {
+    instPush();
+    if (pipeline.at(IF).isStalled()) {
         pcUpdated = true;
     }
 }
@@ -147,50 +133,8 @@ void InstSimulator::instID() {
     if (isNOP(currentInst) || isHalt(currentInst)) {
         return;
     }
-    printf("check dependency for %s\n", currentInst.getInstName().c_str());
-    InstState op = checkInstDependency(currentInst);
-    // for stall
-    if (op == InstState::STALL) {
-        instStall();
-        return;
-    }
-    // check forwarding, get register value
-    if (op == InstState::FORWARD) {
-        if (isBranch(currentInst)) {
-            const std::vector<InstElement>& dmWrite = pipeline.at(DM).getInst().getRegWrite();
-            for (const auto& item : currentInst.getRegRead()) {
-                if (item.val == dmWrite.at(0).val) {
-                    if (item.type == InstElementType::RS) {
-                        current.setValRs(pipeline.at(DM).getALUOut());
-                    }
-                    else if (item.type == InstElementType::RT) {
-                        current.setValRt(pipeline.at(DM).getALUOut());
-                    }
-                    idForward.push_back(item);
-                }
-            }
-        }
-        else {
-            const std::vector<InstElement>& exWrite = pipeline.at(EX).getInst().getRegWrite();
-            for (const auto& item : currentInst.getRegRead()) {
-                if (item.val == exWrite.at(0).val) {
-                    if (item.type == InstElementType::RS) {
-                        current.setValRs(pipeline.at(EX).getALUOut());
-                    }
-                    else if (item.type == InstElementType::RT) {
-                        current.setValRt(pipeline.at(EX).getALUOut());
-                    }
-                    exForward.push_back(item);
-                }
-            }
-        }
-    }
-    else {
-        const unsigned valRs = memory.getRegister(currentInst.getRs());
-        const unsigned valRt = memory.getRegister(currentInst.getRt());
-        current.setValRs(valRs);
-        current.setValRt(valRt);
-    }
+    // TODO: REWRITE FORWARDING
+
     // for branch
     if (isBranchR(currentInst.getFunct())) {
         pc = current.getValRs();
@@ -261,15 +205,12 @@ void InstSimulator::instWB() {
     if (current.getInst().getRegWrite().empty()) {
         return;
     }
-    printf("%s has something to write\n", current.getInst().getInstName().c_str());
     if (isMemoryStore(current.getInst().getOpCode())) {
         unsigned val = memory.getRegister(current.getInst().getRt());
-        printf("write %u to mem %u\n", current.getALUOut(), val);
         instMemStore(current.getALUOut(), val, current.getInst().getOpCode());
     }
     else {
         const unsigned& targetAddress = current.getInst().getRegWrite().at(0).val;
-        printf("write %u to reg %u\n", current.getALUOut(), targetAddress);
         if (isMemoryLoad(current.getInst().getOpCode())) {
             memory.setRegister(targetAddress, current.getMDR());
         }
@@ -285,9 +226,10 @@ void InstSimulator::instPush() {
     }
     else if (pipeline.at(IF).isFlushed()) {
         pipeline.at(IF) = InstPipelineData::nop;
+        pipeline.push_front(instSet[pc >> 2]);
     }
     else {
-        pipeline.push_front(InstPipelineData(false));
+        pipeline.push_front(instSet[pc >> 2]);
     }
 }
 
@@ -300,7 +242,6 @@ void InstSimulator::instPop() {
 void InstSimulator::instStall() {
     pipeline.at(IF).setStalled(true);
     pipeline.at(ID).setStalled(true);
-//    pipeline.insert(pipeline.begin() + 2, InstPipelineData::nop);
 }
 
 void InstSimulator::instUnstall() {
@@ -310,7 +251,10 @@ void InstSimulator::instUnstall() {
 
 void InstSimulator::instFlush() {
     pipeline.at(IF).setFlushed(true);
-//    pipeline[sIF] = InstPipelineData::nop;
+}
+
+void InstSimulator::instForward(const InstDataBin& inst) {
+    // TODO: REWRITE
 }
 
 unsigned InstSimulator::instALUR(const unsigned& funct) {
@@ -416,155 +360,6 @@ void InstSimulator::instMemStore(const unsigned& addr, const unsigned& val, cons
     }
 }
 
-bool InstSimulator::checkInst(const InstDataBin& inst) {
-    if (inst.getInstType() == InstType::R) {
-        // write $0 error
-        if (inst.getFunct() != 0x08u && !isNOP(inst)) { // jr
-            detectWriteRegZero(inst.getRd());
-        }
-        // number overflow
-        if (inst.getFunct() == 0x20u) { // add
-            int rs, rt;
-            rs = toSigned(memory.getRegister(inst.getRs(), InstSize::WORD));
-            rt = toSigned(memory.getRegister(inst.getRt(), InstSize::WORD));
-            detectNumberOverflow(rs, rt, InstOpType::ADD);
-        }
-        if (inst.getFunct() == 0x22u) { // sub
-            int rs, rt;
-            rs = toSigned(memory.getRegister(inst.getRs(), InstSize::WORD));
-            rt = toSigned(memory.getRegister(inst.getRt(), InstSize::WORD));
-            detectNumberOverflow(rs, rt, InstOpType::SUB);
-        }
-    }
-    else if (inst.getInstType() == InstType::I) {
-        // write $0 error
-        if (inst.getOpCode() != 0x2Bu && // sw
-            inst.getOpCode() != 0x29u && // sh
-            inst.getOpCode() != 0x28u && // sb
-            inst.getOpCode() != 0x04u && // beq
-            inst.getOpCode() != 0x05u && // bne
-            inst.getOpCode() != 0x07u) { // bgtz
-            detectWriteRegZero(inst.getRt());
-        }
-        // number overflow
-        if (inst.getOpCode() == 0x08u || // addi
-            inst.getOpCode() == 0x23u || // lw
-            inst.getOpCode() == 0x21u || // lh
-            inst.getOpCode() == 0x25u || // lhu
-            inst.getOpCode() == 0x20u || // lb
-            inst.getOpCode() == 0x24u || // lbu
-            inst.getOpCode() == 0x2Bu || // sw
-            inst.getOpCode() == 0x29u || // sh
-            inst.getOpCode() == 0x28u) { // sb
-            int rs, c;
-            rs = toSigned(memory.getRegister(inst.getRs(), InstSize::WORD));
-            c = toSigned(inst.getC(), 16);
-            detectNumberOverflow(rs, c, InstOpType::ADD);
-        }
-        // Address Memory overflow
-        if (inst.getOpCode() == 0x23u || // lw
-            inst.getOpCode() == 0x2Bu) { // sw
-            int rs, c;
-            rs = toSigned(memory.getRegister(inst.getRs(), InstSize::WORD));
-            c = toSigned(inst.getC(), 16);
-            detectMemAddrOverflow(toUnsigned(rs + c), InstSize::WORD);
-        }
-        if (inst.getOpCode() == 0x21u || // lh
-            inst.getOpCode() == 0x25u || // lhu
-            inst.getOpCode() == 0x29u) { // sh
-            int rs, c;
-            rs = toSigned(memory.getRegister(inst.getRs(), InstSize::WORD));
-            c = toSigned(inst.getC(), 16);
-            detectMemAddrOverflow(toUnsigned(rs + c), InstSize::HALF);
-        }
-        if (inst.getOpCode() == 0x20u || // lb
-            inst.getOpCode() == 0x24u || // lbu
-            inst.getOpCode() == 0x28u) { // sb
-            int rs, c;
-            rs = toSigned(memory.getRegister(inst.getRs(), InstSize::WORD));
-            c = toSigned(inst.getC(), 16);
-            detectMemAddrOverflow(toUnsigned(rs + c), InstSize::BYTE);
-        }
-        // Data misaligned
-        switch (inst.getOpCode()) {
-            case 0x23u: {
-                // lw
-                int rs, c;
-                rs = toSigned(memory.getRegister(inst.getRs(), InstSize::WORD));
-                c = toSigned(inst.getC(), 16);
-                detectDataMisaligned(toUnsigned(rs + c), InstSize::WORD);
-                break;
-            }
-            case 0x21u: {
-                // lh
-                int rs, c;
-                rs = toSigned(memory.getRegister(inst.getRs(), InstSize::WORD));
-                c = toSigned(inst.getC(), 16);
-                detectDataMisaligned(toUnsigned(rs + c), InstSize::HALF);
-                break;
-            }
-            case 0x25u: {
-                // lhu
-                int rs, c;
-                rs = toSigned(memory.getRegister(inst.getRs(), InstSize::WORD));
-                c = toSigned(inst.getC(), 16);
-                detectDataMisaligned(toUnsigned(rs + c), InstSize::HALF);
-                break;
-            }
-            case 0x20u: {
-                // lb
-                int rs, c;
-                rs = toSigned(memory.getRegister(inst.getRs(), InstSize::WORD));
-                c = toSigned(inst.getC(), 16);
-                detectDataMisaligned(toUnsigned(rs + c), InstSize::BYTE);
-                break;
-            }
-            case 0x24u: {
-                // lbu
-                int rs, c;
-                rs = toSigned(memory.getRegister(inst.getRs(), InstSize::WORD));
-                c = toSigned(inst.getC(), 16);
-                detectDataMisaligned(toUnsigned(rs + c), InstSize::BYTE);
-                break;
-            }
-            case 0x2Bu: {
-                // sw
-                int rs, c;
-                rs = toSigned(memory.getRegister(inst.getRs(), InstSize::WORD));
-                c = toSigned(inst.getC(), 16);
-                detectDataMisaligned(toUnsigned(rs + c), InstSize::WORD);
-                break;
-            }
-            case 0x29u: {
-                // sh
-                int rs, c;
-                rs = toSigned(memory.getRegister(inst.getRs(), InstSize::WORD));
-                c = toSigned(inst.getC(), 16);
-                detectDataMisaligned(toUnsigned(rs + c), InstSize::HALF);
-                break;
-            }
-            case 0x28u: {
-                // sb
-                int rs, c;
-                rs = toSigned(memory.getRegister(inst.getRs(), InstSize::WORD));
-                c = toSigned(inst.getC(), 16);
-                detectDataMisaligned(toUnsigned(rs + c), InstSize::BYTE);
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-    }
-    else if (inst.getInstType() == InstType::J) {
-        return isAlive;
-    }
-    else {
-        return isAlive;
-    }
-    return isAlive;
-}
-
 bool InstSimulator::isNOP(const InstDataBin& inst) {
     return !inst.getOpCode() &&
            !inst.getRt() &&
@@ -628,51 +423,18 @@ bool InstSimulator::isBranchJ(const unsigned& opCode) {
 }
 
 bool InstSimulator::hasToStall(const InstDataBin& inst) {
-    printf("check whether need to be stalled\n");
-    printf("dm inst %s\n", pipeline.at(DM).getInst().getInstName().c_str());
-    printf("all items in dmwrite:\n");
-    for (InstElement item : pipeline.at(DM).getInst().getRegWrite()) {
-        printf("%d ", item.val);
-    }
-    printf("\n");
-    const std::vector<InstElement>& dmWrite = pipeline.at(DM).getInst().getRegWrite();
-    if (isBranch(inst)) {
-        return false;
-    }
-    for (const auto& item : inst.getRegRead()) {
-        if (!dmWrite.empty() && item.val && item.val == dmWrite.at(0).val) {
-            return true;
-        }
-    }
+    // TODO: REWRITE
     return false;
 }
 
 bool InstSimulator::hasDependency(const InstDataBin& inst) {
-    const std::vector<InstElement>& exWrite = pipeline.at(EX).getInst().getRegWrite();
-    const std::vector<InstElement>& dmWrite = pipeline.at(DM).getInst().getRegWrite();
-    for (const auto& item : inst.getRegRead()) {
-        if (!exWrite.empty() && item.val && item.val == exWrite.at(0).val) {
-            return true;
-        }
-        if (!dmWrite.empty() && item.val && item.val == dmWrite.at(0).val) {
-            return true;
-        }
-    }
+    // TODO: REWRITE
     return false;
 }
 
 InstState InstSimulator::checkInstDependency(const InstDataBin& inst) {
-    if (hasDependency(inst)) {
-        if (hasToStall(inst)) {
-            return InstState::STALL;
-        }
-        else {
-            return InstState::FORWARD;
-        }
-    }
-    else {
-        return InstState::NORMAL;
-    }
+    // TODO: REWRITE
+    return InstState::NORMAL;
 }
 
 InstAction InstSimulator::detectWriteRegZero(const unsigned& addr) {
