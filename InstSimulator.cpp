@@ -112,13 +112,13 @@ void InstSimulator::dumpPipelineInfo(FILE* fp, const int stage) {
             }
             else {
                 for (const auto& item : idForward) {
-                    fprintf(fp, " fwd_EX-DM_%s_$%d", item.type == InstElementType::RS ? "rs" : "rt", item.val);
+                    fprintf(fp, " fwd_EX-DM_%s_$%d", (item.type == InstElementType::RS) ? "rs" : "rt", item.val);
                 }
             }
             break;
         case EX:
             for (const auto& item : exForward) {
-                fprintf(fp, " fwd_EX-DM_%s_$%d", item.type == InstElementType::RS ? "rs" : "rt", item.val);
+                fprintf(fp, " fwd_EX-DM_%s_$%d", (item.type == InstElementType::RS) ? "rs" : "rt", item.val);
             }
         default:
             break;
