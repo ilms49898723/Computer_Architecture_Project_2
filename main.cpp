@@ -13,7 +13,7 @@
 #include "InstSimulator.h"
 #include "InstImageReader.h"
 
-int main(int argc, char** argv) {
+int main() {
     // constant string filenames
     const std::string iimageFilename = "iimage.bin";
     const std::string dimageFilename = "dimage.bin";
