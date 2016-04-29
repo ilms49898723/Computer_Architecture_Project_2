@@ -47,9 +47,16 @@ void InstSimulator::loadImageD(const unsigned* src, const unsigned& len, const u
     }
 }
 
-void InstSimulator::simulate(FILE* snapshot, FILE* errorDump) {
+void InstSimulator::setOutputFile(FILE* snapshot, FILE* errorDump) {
     this->snapshot = snapshot;
     this->errorDump = errorDump;
+}
+
+void InstSimulator::simulate() {
+    if (!snapshot || !errorDump) {
+        fprintf(stderr, "Output File Setting is not correct.\n");
+        return;
+    }
     pc = pcOriginal;
     cycle = 0u;
     alive = true;

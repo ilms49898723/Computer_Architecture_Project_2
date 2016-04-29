@@ -13,6 +13,7 @@ unsigned InstImageReader::readImageI(const std::string& filePath, unsigned* dst,
     FILE* iimage = fopen(filePath.c_str(), "rb");
     if (!iimage) {
         *pc = 0u;
+        fprintf(stderr, "%s: %s\n", filePath.c_str(), strerror(errno));
         return 0u;
     }
     unsigned ret = readImageI(iimage, dst, pc);
@@ -35,6 +36,7 @@ unsigned InstImageReader::readImageD(const std::string& filePath, unsigned* dst,
     FILE* dimage = fopen(filePath.c_str(), "rb");
     if (!dimage) {
         *sp = 0u;
+        fprintf(stderr, "%s: %s\n", filePath.c_str(), strerror(errno));
         return 0u;
     }
     unsigned ret = readImageD(dimage, dst, sp);

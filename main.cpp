@@ -7,27 +7,43 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <cerrno>
+#include <string>
 #include "InstSimulator.h"
 #include "InstImageReader.h"
 
 int main(int argc, char** argv) {
+    // constant string filenames
+    const std::string iimageFilename = "iimage.bin";
+    const std::string dimageFilename = "dimage.bin";
+    const std::string snapshotFilename = "ssnapshot.rpt";
+    const std::string errorDumpFilename = "eerror_dump.rpt";
     // load iimage, dimage
     unsigned iLen, dLen;
     unsigned pc, sp;
     unsigned inst[2048], memory[2048];
-    iLen = lb::InstImageReader::readImageI("iimage.bin", inst, &pc);
-    dLen = lb::InstImageReader::readImageD("dimage.bin", memory, &sp);
-    // simulate
-    FILE* snapShot, * errorDump;
-    snapShot = fopen("ssnapshot.rpt", "w");
-    errorDump = fopen("eerror_dump.rpt", "w");
-    if (!snapShot || !errorDump) {
+    iLen = lb::InstImageReader::readImageI(iimageFilename.c_str(), inst, &pc);
+    dLen = lb::InstImageReader::readImageD(dimageFilename.c_str(), memory, &sp);
+    // open output file
+    FILE* snapShot;
+    FILE* errorDump;
+    snapShot = fopen(snapshotFilename.c_str(), "w");
+    if (!snapShot) {
+        fprintf(stderr, "%s: %s\n", snapshotFilename.c_str(), strerror(errno));
         exit(EXIT_FAILURE);
     }
+    errorDump = fopen(errorDumpFilename.c_str(), "w");
+    if (!errorDump) {
+        fprintf(stderr, "%s: %s\n", errorDumpFilename.c_str(), strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    // set simulator, start simulate
     lb::InstSimulator simulator;
     simulator.loadImageI(inst, iLen, pc);
     simulator.loadImageD(memory, dLen, sp);
-    simulator.simulate(snapShot, errorDump);
+    simulator.setOutputFile(snapShot, errorDump);
+    simulator.simulate();
     fclose(snapShot);
     fclose(errorDump);
     return 0;

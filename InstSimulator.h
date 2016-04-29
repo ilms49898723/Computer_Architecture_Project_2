@@ -43,7 +43,9 @@ public:
 
     void loadImageD(const unsigned* src, const unsigned& len, const unsigned& sp);
 
-    void simulate(FILE* snapshot, FILE* errorDump);
+    void setOutputFile(FILE* snapshot, FILE* errorDump);
+
+    void simulate();
 
 private:
     bool alive;

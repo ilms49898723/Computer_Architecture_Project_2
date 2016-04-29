@@ -10,6 +10,8 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <cerrno>
 #include <string>
 
 namespace lb {
