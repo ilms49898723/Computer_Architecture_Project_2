@@ -6,9 +6,9 @@
  */
 
 #include <cstdio>
+#include <cerrno>
 #include <cstdlib>
 #include <cstring>
-#include <cerrno>
 #include <string>
 #include "InstSimulator.h"
 #include "InstImageReader.h"
