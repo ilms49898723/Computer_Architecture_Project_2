@@ -20,10 +20,10 @@ enum class InstElementType : unsigned {
 
 /**
  * enum class for pipeline states
- * IF, ID, EX, DM, WB, NONE, STALL
+ * NONE, STALL, FORWARD
  */
 enum class InstState : unsigned {
-    IF, ID, EX, DM, WB, NONE, STALL
+    NONE, STALL, FORWARD
 };
 
 /**
