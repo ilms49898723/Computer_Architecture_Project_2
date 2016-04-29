@@ -291,10 +291,6 @@ unsigned InstSimulator::instALUI(const unsigned& opCode) {
     }
 }
 
-unsigned InstSimulator::instALUJ() {
-    return pc + 4;
-}
-
 unsigned InstSimulator::instMemLoad(const unsigned& addr, const unsigned& opCode) {
     switch (opCode) {
         case 0x23u:

@@ -94,8 +94,6 @@ private:
 
     unsigned instALUI(const unsigned& opCode);
 
-    unsigned instALUJ();
-
     unsigned instMemLoad(const unsigned& addr, const unsigned& opCode);
 
     void instMemStore(const unsigned& addr, const unsigned& val, const unsigned& opCode);
