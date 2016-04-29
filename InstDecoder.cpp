@@ -131,7 +131,7 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
         ret.setC(c);
         ret.setInstName(opCode);
         if (opCode == 0x03u) {
-            ret.setRegWrite(31);
+            ret.setRegWrite(InstElement(31));
         }
         return ret;
     }
@@ -164,13 +164,11 @@ InstDataBin InstDecoder::decodeInstBin(const unsigned& src) {
                 break;
             case 0x04u: // beq
             case 0x05u: // bne
-                ret.setRegRead(InstElement(rs, InstElementType::RS));
-                ret.setRegRead(InstElement(rt, InstElementType::RT));
-                break;
             case 0x2Bu: // sw
             case 0x29u: // sh
             case 0x28u: // sb
                 ret.setRegRead(InstElement(rs, InstElementType::RS));
+                ret.setRegRead(InstElement(rt, InstElementType::RT));
                 break;
             default:
                 ret.setRegRead(InstElement(rs, InstElementType::RS));
