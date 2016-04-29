@@ -38,6 +38,8 @@ public:
 
     void setValC(const unsigned& c);
 
+    void setBranchResult(const bool& branchResult);
+
     void setStalled(const bool& stalled);
 
     void setFlushed(const bool& flushed);
@@ -54,6 +56,8 @@ public:
 
     unsigned getValC() const;
 
+    bool getBranchResult() const;
+
     bool isStalled() const;
 
     bool isFlushed() const;
@@ -67,6 +71,7 @@ private:
     unsigned valRs;
     unsigned valRt;
     unsigned valC;
+    bool branchResult;
     bool stalled;
     bool flushed;
 };

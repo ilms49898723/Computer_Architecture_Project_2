@@ -18,6 +18,7 @@ InstPipelineData::InstPipelineData() {
     this->valRs = 0u;
     this->valRt = 0u;
     this->valC = 0u;
+    this->branchResult = false;
     this->stalled = false;
     this->flushed = false;
 }
@@ -29,6 +30,7 @@ InstPipelineData::InstPipelineData(const InstDataBin& inst) {
     this->valRs = 0u;
     this->valRt = 0u;
     this->valC = inst.getC();
+    this->branchResult = false;
     this->stalled = false;
     this->flushed = false;
 }
@@ -40,6 +42,7 @@ InstPipelineData::InstPipelineData(const InstDataBin& inst, const unsigned& data
     this->valRs = 0u;
     this->valRt = 0u;
     this->valC = inst.getC();
+    this->branchResult = false;
     this->stalled = false;
     this->flushed = false;
 }
@@ -78,6 +81,10 @@ void InstPipelineData::setValRt(const unsigned& rt) {
 
 void InstPipelineData::setValC(const unsigned& c) {
     this->valC = c;
+}
+
+void InstPipelineData::setBranchResult(const bool& branchResult) {
+    this->branchResult = branchResult;
 }
 
 void InstPipelineData::setStalled(const bool& stalled) {
@@ -119,6 +126,10 @@ unsigned InstPipelineData::getValRt() const {
 
 unsigned InstPipelineData::getValC() const {
     return valC;
+}
+
+bool InstPipelineData::getBranchResult() const {
+    return branchResult;
 }
 
 bool InstPipelineData::isStalled() const {
