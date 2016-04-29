@@ -60,12 +60,14 @@ void InstSimulator::simulate(FILE* snapshot, FILE* errorDump) {
     while (!isFinished()) {
         // TODO: REWRITE
         pcUpdated = false;
+        instPreprocess();
         instWB();
         instDM();
         instEX();
         instID();
         instIF();
         instPop();
+        // TODO: check dependency in current pipeline
         dumpSnapshot(snapshot);
         ++cycle;
         if (!pcUpdated) {
@@ -124,116 +126,68 @@ void InstSimulator::dumpPipelineInfo(FILE* fp, const int stage) {
 }
 
 void InstSimulator::instIF() {
-    if (pipeline.at(IF).isStalled()) {
-        pcUpdated = true;
-    }
-    instPush();
+    // TODO: rewrite
 }
 
 void InstSimulator::instID() {
-    InstPipelineData& current = pipeline.at(ID);
-    const InstDataBin& currentInst = pipeline.at(ID).getInst();
-    if (isNOP(currentInst) || isHalt(currentInst)) {
-        return;
-    }
-    // TODO: REWRITE FORWARDING
-
-    // for branch
-    if (isBranchR(currentInst.getFunct())) {
-        pc = current.getValRs();
-        pcUpdated = true;
-        instFlush();
-    }
-    else if (isBranchI(currentInst.getOpCode())) {
-        bool result;
-        switch (current.getInst().getOpCode()) {
-            case 0x04u:
-                result = current.getValRs() == current.getValRt();
-                break;
-            case 0x05u:
-                result = current.getValRs() != current.getValRt();
-                break;
-            case 0x07u:
-                result = current.getValRs() > 0u;
-                break;
-            default:
-                result = false;
-                break;
-        }
-        if (result) {
-            pc += 4 + 4 * toSigned(current.getValC(), 16);
-            pcUpdated = true;
-            instFlush();
-        }
-    }
-    else if (isBranchJ(currentInst.getOpCode())) {
-        if (currentInst.getOpCode() == 0x03u) {
-            current.setALUOut(instALUJ());
-        }
-        pc = (pc & 0xF0000000u) | (current.getValC() * 4);
-        pcUpdated = true;
-        instFlush();
-    }
+    // TODO: rewrite
 }
 
 void InstSimulator::instEX() {
-    const InstDataBin& current = pipeline.at(EX).getInst();
-    if (isNOP(current) || isHalt(current) || isBranch(current)) {
+    InstPipelineData& pipelineData = pipeline.at(EX);
+    const InstDataBin& inst = pipeline.at(EX).getInst();
+    if (isNOP(inst) || isHalt(inst) || isBranch(inst)) {
         return;
     }
-    else if (current.getInstType() == InstType::R && current.getFunct() != 0x08u) {
+    else if (inst.getInstType() == InstType::R && inst.getFunct() != 0x08u) {
         // type-R, not jr
-        pipeline.at(EX).setALUOut(instALUR(current.getFunct()));
+        pipelineData.setALUOut(instALUR(inst.getFunct()));
     }
-    else if (current.getInstType() == InstType::I && current.getOpCode() != 0x04u && current.getOpCode() != 0x05u && current.getOpCode() != 0x07u) {
+    else if (inst.getInstType() == InstType::I && inst.getOpCode() != 0x04u && inst.getOpCode() != 0x05u && inst.getOpCode() != 0x07u) {
         // type-I, not beq, bne, bgtz
-        pipeline.at(EX).setALUOut(instALUI(current.getOpCode()));
+        pipelineData.setALUOut(instALUI(inst.getOpCode()));
+    }
+    else {
+        return;
     }
 }
 
 void InstSimulator::instDM() {
-    const InstDataBin& current = pipeline.at(DM).getInst();
-    if (isMemoryLoad(current.getOpCode())) {
-        const unsigned& ALUOut = pipeline.at(DM).getALUOut();
-        const unsigned MDR = instMemLoad(ALUOut, current.getOpCode());
-        pipeline.at(DM).setMDR(MDR);
+    InstPipelineData& pipelineData = pipeline.at(DM);
+    const InstDataBin& inst = pipeline.at(DM).getInst();
+    if (isMemoryLoad(inst.getOpCode())) {
+        const unsigned& ALUOut = pipelineData.getALUOut();
+        const unsigned& MDR = instMemLoad(ALUOut, inst.getOpCode());
+        pipelineData.setMDR(MDR);
     }
 }
 
 void InstSimulator::instWB() {
-    const InstPipelineData& current = pipeline.at(WB);
-    if (isNOP(current.getInst()) || isHalt(current.getInst())) {
+    const InstPipelineData& pipelineData = pipeline.at(WB);
+    const InstDataBin& inst = pipeline.at(WB).getInst();
+    if (isNOP(inst) || isHalt(inst)) {
         return;
     }
-    if (current.getInst().getRegWrite().empty()) {
+    if (inst.getRegWrite().empty()) {
         return;
     }
-    if (isMemoryStore(current.getInst().getOpCode())) {
-        unsigned val = memory.getRegister(current.getInst().getRt());
-        instMemStore(current.getALUOut(), val, current.getInst().getOpCode());
+    if (isMemoryStore(inst.getOpCode())) {
+        unsigned val = memory.getRegister(inst.getRt());
+        instMemStore(pipelineData.getALUOut(), val, inst.getOpCode());
     }
     else {
-        const unsigned& targetAddress = current.getInst().getRegWrite().at(0).val;
-        if (isMemoryLoad(current.getInst().getOpCode())) {
-            memory.setRegister(targetAddress, current.getMDR());
+        const unsigned& targetAddress = inst.getRegWrite().at(0).val;
+        if (isMemoryLoad(inst.getOpCode())) {
+            memory.setRegister(targetAddress, pipelineData.getMDR());
         }
         else {
-            memory.setRegister(targetAddress, current.getALUOut());
+            memory.setRegister(targetAddress, pipelineData.getALUOut());
         }
     }
 }
 
 void InstSimulator::instPush() {
-    if (pipeline.at(IF).isStalled()) {
-        return;
-    }
-    else if (pipeline.at(IF).isFlushed()) {
-        pipeline.at(IF) = InstPipelineData::nop;
-        pipeline.push_front(instSet[pc >> 2]);
-    }
-    else {
-        pipeline.push_front(instSet[pc >> 2]);
-    }
+    // TODO: REWRITE
 }
 
 void InstSimulator::instPop() {
@@ -259,6 +213,16 @@ void InstSimulator::instFlush() {
 
 void InstSimulator::instForward(const InstDataBin& inst) {
     // TODO: REWRITE
+}
+
+void InstSimulator::instPreprocess() {
+    // check every pipeline stage(stall, flush)
+    if (pipeline.at(IF).isFlushed()) {
+        pipeline.at(IF) = InstPipelineData::nop;
+    }
+    if (pipeline.at(ID).isStalled()) {
+        pipeline.insert(pipeline.begin() + 2, InstPipelineData::nop);
+    }
 }
 
 unsigned InstSimulator::instALUR(const unsigned& funct) {

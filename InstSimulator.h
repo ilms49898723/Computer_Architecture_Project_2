@@ -88,6 +88,8 @@ private:
 
     void instForward(const InstDataBin& inst);
 
+    void instPreprocess();
+
     unsigned instALUR(const unsigned& funct);
 
     unsigned instALUI(const unsigned& opCode);
