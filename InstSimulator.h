@@ -46,9 +46,10 @@ public:
     void simulate(FILE* snapshot, FILE* errorDump);
 
 private:
-    bool isAlive;
+    bool alive;
     bool pcUpdated;
     unsigned pc;
+    unsigned pcOriginal;
     unsigned cycle;
     FILE* snapshot;
     FILE* errorDump;

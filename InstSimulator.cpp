@@ -22,18 +22,16 @@ void InstSimulator::init() {
     idForward.clear();
     exForward.clear();
     memory.init();
-    pc = 0u;
-    cycle = 0u;
+    pcOriginal = 0u;
     snapshot = nullptr;
     errorDump = nullptr;
-    isAlive = true;
     for (int i = 0; i < InstSimulator::maxn; ++i) {
         instSet[i] = InstDecoder::decodeInstBin(0u);
     }
 }
 
 void InstSimulator::loadImageI(const unsigned* src, const unsigned& len, const unsigned& pc) {
-    this->pc = pc;
+    this->pcOriginal = pc;
     unsigned instSetIdx = pc >> 2;
     for (unsigned i = 0; i < len; ++i) {
         instSet[instSetIdx] = InstDecoder::decodeInstBin(src[i]);
@@ -52,11 +50,15 @@ void InstSimulator::loadImageD(const unsigned* src, const unsigned& len, const u
 void InstSimulator::simulate(FILE* snapshot, FILE* errorDump) {
     this->snapshot = snapshot;
     this->errorDump = errorDump;
+    cycle = 0u;
+    pc = pcOriginal;
+    alive = true;
     for (int i = 0; i < 5; ++i) {
         pipeline.push_back(InstPipelineData::nop);
     }
     while (!isFinished()) {
         // TODO: REWRITE
+        pcUpdated = false;
         instWB();
         instDM();
         instEX();
@@ -234,6 +236,7 @@ void InstSimulator::instPush() {
 }
 
 void InstSimulator::instPop() {
+    // if size of pipeline > 5, pop the last one
     if (pipeline.size() > 5) {
         pipeline.pop_back();
     }
@@ -454,7 +457,7 @@ InstAction InstSimulator::detectNumberOverflow(const int& a, const int& b, const
 InstAction InstSimulator::detectMemAddrOverflow(const unsigned& addr, const InstSize& type) {
     if (!InstErrorDetector::isValidMemoryAddr(addr, type)) {
         fprintf(errorDump, "In cycle %u: Address Overflow\n", cycle);
-        isAlive = false;
+        alive = false;
         return InstAction::HALT;
     }
     return InstAction::CONTINUE;
@@ -463,7 +466,7 @@ InstAction InstSimulator::detectMemAddrOverflow(const unsigned& addr, const Inst
 InstAction InstSimulator::detectDataMisaligned(const unsigned& addr, const InstSize& type) {
     if (!InstErrorDetector::isAlignedAddr(addr, type)) {
         fprintf(errorDump, "In cycle %u: Misalignment Error\n", cycle);
-        isAlive = false;
+        alive = false;
         return InstAction::HALT;
     }
     return InstAction::CONTINUE;
