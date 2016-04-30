@@ -110,6 +110,9 @@ void InstDataBin::setInstName(const unsigned& val) {
         if (inst == 0u) {
             instName = "NOP";
         }
+        else if (rt == 0u && rd == 0u && c == 0u && funct == 0u) {
+            instName = "NOP";
+        }
         else {
             instName = toUpperString(InstLookUp::functLookUp(val));
         }
