@@ -86,8 +86,6 @@ private:
 
     void instFlush();
 
-    void instCleanUp();
-
     void instSetDependency();
 
     void instSetDependencyID();
@@ -126,8 +124,6 @@ private:
 
     bool hasToStall(const unsigned& dependency, const std::vector<unsigned>& dEX,
                         const std::vector<unsigned>& dDM);
-
-    bool dependencySet(const unsigned& dependency, const unsigned& stage);
 
     unsigned getDependency(std::vector<unsigned>& dEX, std::vector<unsigned>& dDM);
 

@@ -264,14 +264,6 @@ void InstSimulator::instFlush() {
     pipeline.at(IF).setFlushed(true);
 }
 
-void InstSimulator::instCleanUp() {
-    // check every pipeline stage(stall, flush)
-    if (pipeline.at(ID).isStalled()) {
-        pipeline.insert(pipeline.begin() + 2, InstPipelineData::nop);
-        instUnstall();
-    }
-}
-
 void InstSimulator::instSetDependency() {
     instSetDependencyID();
     instSetDependencyEX();
@@ -578,10 +570,6 @@ bool InstSimulator::hasToStall(const unsigned& dependency, const std::vector<uns
     else {
         return !dDM.empty();
     }
-}
-
-bool InstSimulator::dependencySet(const unsigned& dependency, const unsigned& stage) {
-    return (dependency & (1u << stage)) != 0u;
 }
 
 unsigned InstSimulator::getDependency(std::vector<unsigned>& dEX, std::vector<unsigned>& dDM) {
