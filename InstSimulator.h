@@ -96,7 +96,7 @@ private:
 
     unsigned instALUI(const InstDataBin& inst);
 
-    unsigned instALUJ();
+    unsigned instALUJ(const unsigned& instPc);
 
     unsigned instMemLoad(const unsigned& addr, const InstDataBin& inst);
 

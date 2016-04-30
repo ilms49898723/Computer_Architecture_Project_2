@@ -169,7 +169,7 @@ void InstSimulator::instID() {
         }
         else {
             if (inst.getOpCode() == 0x03u) {
-                pipelineData.setALUOut(pipelineData.getInstPc() + 4);
+                pipelineData.setALUOut(instALUJ(pipelineData.getInstPc()));
             }
             pc = ((pipelineData.getInstPc() + 4) & 0xF0000000u) | (pipelineData.getValC() * 4);
         }
@@ -198,6 +198,9 @@ void InstSimulator::instEX() {
 void InstSimulator::instDM() {
     InstPipelineData& pipelineData = pipeline.at(DM);
     const InstDataBin& inst = pipeline.at(DM).getInst();
+    if (isNOP(inst) || isHalt(inst)) {
+        return;
+    }
     if (isMemoryLoad(inst)) {
         const unsigned& ALUOut = pipelineData.getALUOut();
         InstAction action[2];
@@ -217,7 +220,7 @@ void InstSimulator::instDM() {
         if (action[0] == InstAction::HALT || action[1] == InstAction::HALT) {
             return;
         }
-        unsigned val = memory.getRegister(inst.getRt());
+        const unsigned& val = memory.getRegister(inst.getRt());
         instMemStore(ALUOut, val, inst);
     }
 }
@@ -277,34 +280,15 @@ void InstSimulator::instSetDependencyID() {
         instStall();
         return;
     }
-    else {
-        if (isBranch(inst)) {
-            if (action == InstState::FORWARD) {
-                for (const auto& item : idRead) {
-                    if (!dmWrite.empty() && item.val && item.val == dmWrite.at(0).val) {
-                        pipelineData.setVal(pipeline.at(DM).getALUOut(), item.type);
-                        idForward.push_back(item);
-                    }
-                    else {
-                        const InstPipelineData& wbData = pipeline.at(WB);
-                        if (!wbData.getInst().getRegWrite().empty() &&
-                            wbData.getInst().getRegWrite().at(0).val == item.val) {
-                            if (isMemoryLoad(wbData.getInst())) {
-                                pipelineData.setVal(wbData.getMDR(), item.type);
-                            }
-                            else {
-                                pipelineData.setVal(wbData.getALUOut(), item.type);
-                            }
-                        }
-                        else {
-                            pipelineData.setVal(memory.getRegister(item.val), item.type);
-                        }
-                    }
+    else if (isBranch(inst)) {
+        const InstPipelineData& wbData = pipeline.at(WB);
+        if (action == InstState::FORWARD) {
+            for (const auto& item : idRead) {
+                if (!dmWrite.empty() && item.val && item.val == dmWrite.at(0).val) {
+                    pipelineData.setVal(pipeline.at(DM).getALUOut(), item.type);
+                    idForward.push_back(item);
                 }
-            }
-            else {
-                const InstPipelineData& wbData = pipeline.at(WB);
-                for (const auto& item : idRead) {
+                else {
                     if (!wbData.getInst().getRegWrite().empty() &&
                         wbData.getInst().getRegWrite().at(0).val == item.val) {
                         if (isMemoryLoad(wbData.getInst())) {
@@ -319,15 +303,31 @@ void InstSimulator::instSetDependencyID() {
                     }
                 }
             }
-            bool result = instPredictBranch();
-            pipelineData.setBranchResult(result);
-            if (result) {
-                instFlush();
-            }
         }
         else {
-            return;
+            for (const auto& item : idRead) {
+                if (!wbData.getInst().getRegWrite().empty() &&
+                    wbData.getInst().getRegWrite().at(0).val == item.val) {
+                    if (isMemoryLoad(wbData.getInst())) {
+                        pipelineData.setVal(wbData.getMDR(), item.type);
+                    }
+                    else {
+                        pipelineData.setVal(wbData.getALUOut(), item.type);
+                    }
+                }
+                else {
+                    pipelineData.setVal(memory.getRegister(item.val), item.type);
+                }
+            }
         }
+        bool result = instPredictBranch();
+        pipelineData.setBranchResult(result);
+        if (result) {
+            instFlush();
+        }
+    }
+    else {
+        return;
     }
 }
 
@@ -449,8 +449,8 @@ unsigned InstSimulator::instALUI(const InstDataBin& inst) {
     }
 }
 
-unsigned InstSimulator::instALUJ() {
-    return pc + 4;
+unsigned InstSimulator::instALUJ(const unsigned& instPc) {
+    return instPc + 4;
 }
 
 unsigned InstSimulator::instMemLoad(const unsigned& addr, const InstDataBin& inst) {
