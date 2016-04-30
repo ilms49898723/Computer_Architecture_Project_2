@@ -117,7 +117,9 @@ unsigned InstPipelineData::getVal(const InstElementType& type) const {
     else if (type == InstElementType::C) {
         return getValC();
     }
-    return 0u;
+    else {
+        return 0u;
+    }
 }
 
 unsigned InstPipelineData::getValRs() const {
