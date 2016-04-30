@@ -121,7 +121,7 @@ private:
     bool isBranchJ(const InstDataBin& inst);
 
     bool hasToStall(const unsigned& dependency, const std::vector<unsigned>& dEX,
-                        const std::vector<unsigned>& dDM);
+                    const std::vector<unsigned>& dDM);
 
     unsigned getDependency(std::vector<unsigned>& dEX, std::vector<unsigned>& dDM);
 

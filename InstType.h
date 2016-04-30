@@ -67,8 +67,9 @@ enum class InstSize : unsigned {
 struct InstElement {
     unsigned val;
     InstElementType type;
+
     InstElement(unsigned val = 0, InstElementType type = InstElementType::UNDEF) :
-            val(val), type(type) {}
+            val(val), type(type) { }
 };
 
 } /* namespace lb */

@@ -285,7 +285,7 @@ void InstSimulator::instSetDependencyID() {
         instStall();
         return;
     }
-    else{
+    else {
         if (isBranch(inst)) {
             if (action == InstState::FORWARD) {
                 for (const auto& item : idRead) {
@@ -562,7 +562,8 @@ bool InstSimulator::isBranchJ(const InstDataBin& inst) {
     return inst.getOpCode() == 0x02u || inst.getOpCode() == 0x03u;
 }
 
-bool InstSimulator::hasToStall(const unsigned& dependency, const std::vector<unsigned>& dEX, const std::vector<unsigned>& dDM) {
+bool InstSimulator::hasToStall(const unsigned& dependency, const std::vector<unsigned>& dEX,
+                               const std::vector<unsigned>& dDM) {
     const InstDataBin& inst = pipeline.at(ID).getInst();
     // no dependency
     if (dependency == 0u) {
