@@ -26,6 +26,8 @@ public:
 
     virtual ~InstPipelineData();
 
+    void setInstPc(const unsigned& instPc);
+
     void setALUOut(const unsigned& ALUOut);
 
     void setMDR(const unsigned& MDR);
@@ -41,6 +43,8 @@ public:
     void setStalled(const bool& stalled);
 
     void setFlushed(const bool& flushed);
+
+    unsigned getInstPc() const;
 
     unsigned getALUOut() const;
 
@@ -64,6 +68,7 @@ public:
 
 private:
     InstDataBin inst;
+    unsigned instPc;
     unsigned ALUOut;
     unsigned MDR;
     unsigned valRs;

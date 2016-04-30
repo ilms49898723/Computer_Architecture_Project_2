@@ -13,6 +13,7 @@ const InstPipelineData InstPipelineData::nop = InstPipelineData(InstDecoder::dec
 
 InstPipelineData::InstPipelineData() {
     this->inst = InstDataBin();
+    this->instPc = 0u;
     this->ALUOut = 0u;
     this->MDR = 0u;
     this->valRs = 0u;
@@ -25,6 +26,7 @@ InstPipelineData::InstPipelineData() {
 
 InstPipelineData::InstPipelineData(const InstDataBin& inst) {
     this->inst = inst;
+    this->instPc = 0u;
     this->ALUOut = 0u;
     this->MDR = 0u;
     this->valRs = 0u;
@@ -37,6 +39,7 @@ InstPipelineData::InstPipelineData(const InstDataBin& inst) {
 
 InstPipelineData::InstPipelineData(const InstDataBin& inst, const unsigned& data) {
     this->inst = inst;
+    this->instPc = 0u;
     this->ALUOut = data;
     this->MDR = 0u;
     this->valRs = 0u;
@@ -49,6 +52,10 @@ InstPipelineData::InstPipelineData(const InstDataBin& inst, const unsigned& data
 
 InstPipelineData::~InstPipelineData() {
 
+}
+
+void InstPipelineData::setInstPc(const unsigned& instPc) {
+    this->instPc = instPc;
 }
 
 void InstPipelineData::setALUOut(const unsigned& data) {
@@ -86,6 +93,10 @@ void InstPipelineData::setStalled(const bool& stalled) {
 
 void InstPipelineData::setFlushed(const bool& flushed) {
     this->flushed = flushed;
+}
+
+unsigned InstPipelineData::getInstPc() const {
+    return instPc;
 }
 
 unsigned InstPipelineData::getALUOut() const {
