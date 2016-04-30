@@ -70,7 +70,7 @@ void InstSimulator::simulate() {
     for (int i = 0; i < 5; ++i) {
         pipeline.push_back(InstPipelineData::nop);
     }
-    while (!isFinished() && pc < 1024u && cycle <= 50000) {
+    while (!isFinished() && pc < 1024u) {
         // wb
         instWB();
         // dm
