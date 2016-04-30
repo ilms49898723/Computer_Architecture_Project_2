@@ -36,8 +36,6 @@ public:
 
     void setValRt(const unsigned& rt);
 
-    void setValC(const unsigned& c);
-
     void setBranchResult(const bool& branchResult);
 
     void setStalled(const bool& stalled);
@@ -62,7 +60,7 @@ public:
 
     bool isFlushed() const;
 
-    InstDataBin getInst() const;
+    const InstDataBin& getInst() const;
 
 private:
     InstDataBin inst;

@@ -66,9 +66,6 @@ void InstPipelineData::setVal(const unsigned& src, const InstElementType& type) 
     else if (type == InstElementType::RT) {
         setValRt(src);
     }
-    else if (type == InstElementType::C) {
-        setValC(src);
-    }
 }
 
 void InstPipelineData::setValRs(const unsigned& rs) {
@@ -77,10 +74,6 @@ void InstPipelineData::setValRs(const unsigned& rs) {
 
 void InstPipelineData::setValRt(const unsigned& rt) {
     this->valRt = rt;
-}
-
-void InstPipelineData::setValC(const unsigned& c) {
-    this->valC = c;
 }
 
 void InstPipelineData::setBranchResult(const bool& branchResult) {
@@ -140,7 +133,7 @@ bool InstPipelineData::isFlushed() const {
     return flushed;
 }
 
-InstDataBin InstPipelineData::getInst() const {
+const InstDataBin& InstPipelineData::getInst() const {
     return inst;
 }
 
