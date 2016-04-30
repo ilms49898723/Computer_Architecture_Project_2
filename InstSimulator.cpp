@@ -14,7 +14,6 @@ const unsigned InstSimulator::ID = 1u;
 const unsigned InstSimulator::EX = 2u;
 const unsigned InstSimulator::DM = 3u;
 const unsigned InstSimulator::WB = 4u;
-const unsigned InstSimulator::STAGES = 5u;
 
 InstSimulator::InstSimulator() {
     init();
@@ -72,17 +71,6 @@ void InstSimulator::simulate() {
         pipeline.push_back(InstPipelineData::nop);
     }
     while (!isFinished() && pc < 1024u) {
-        printf("cycle %d:\n", cycle);
-        printf("before pipeline %s %s %s %s %s, pc = %u\n",
-               pipeline.at(IF).getInst().getInstName().c_str(),
-               pipeline.at(ID).getInst().getInstName().c_str(),
-               pipeline.at(EX).getInst().getInstName().c_str(),
-               pipeline.at(DM).getInst().getInstName().c_str(),
-               pipeline.at(WB).getInst().getInstName().c_str(),
-               pc
-        );
-        // reset pcUpdated flag
-        pcUpdated = false;
         // wb
         instWB();
         // dm
@@ -102,16 +90,12 @@ void InstSimulator::simulate() {
         // clear message buffer
         idForward.clear();
         exForward.clear();
-        // deal with stall, flush
-        instCleanUp();
         instSetDependency();
         dumpSnapshot(snapshot);
-        printf("after pc = %u, pcUpdated = %d, IF stalled = %d\n", pc, pcUpdated, pipeline.at(IF).isStalled());
-        if (!pcUpdated && !pipeline.at(IF).isStalled()) {
+        ++cycle;
+        if (!pipeline.at(IF).isStalled()) {
             pc += 4;
         }
-        ++cycle;
-        printf("cycle end pc = %u\n\n", pc);
     }
 }
 
@@ -165,9 +149,16 @@ void InstSimulator::dumpPipelineInfo(FILE* fp, const int stage) {
 }
 
 void InstSimulator::instIF() {
-    if (!pipeline.at(IF).isStalled()) {
-        pipeline.push_front(instList[pc >> 2]);
+    if (pipeline.at(IF).isFlushed()) {
+        pipeline.at(IF) = InstPipelineData::nop;
     }
+    if (!pipeline.at(IF).isStalled()) {
+        pipeline.push_front(InstPipelineData(instList[pc >> 2], pc));
+    }
+    else {
+        pipeline.insert(pipeline.begin() + 2, InstPipelineData::nop);
+    }
+    instUnstall();
 }
 
 void InstSimulator::instID() {
@@ -177,22 +168,19 @@ void InstSimulator::instID() {
         return;
     }
     if (pipelineData.getBranchResult()) {
-        printf("pcUpdate change to true in ID\n");
         pcUpdated = true;
         if (isBranchR(inst)) {
             pc = pipelineData.getValRs();
         }
         else if (isBranchI(inst)) {
-            printf("branch %s taken, ", inst.getInstName().c_str());
-            int newPc = toSigned(pc) + 4 + 4 * toSigned(pipelineData.getValC(), 16);
+            int newPc = toSigned(pipelineData.getInstPc()) + 4 + 4 * toSigned(pipelineData.getValC(), 16);
             pc = toUnsigned(newPc);
-            printf("newPc = %d\n", newPc);
         }
         else {
             if (inst.getOpCode() == 0x03u) {
                 pipelineData.setALUOut(instALUJ());
             }
-            pc = ((pc + 4) & 0xF0000000u) | (pipelineData.getValC() * 4);
+            pc = (pc & 0xF0000000u) | (pipelineData.getValC() * 4);
         }
     }
 }
@@ -278,9 +266,6 @@ void InstSimulator::instFlush() {
 
 void InstSimulator::instCleanUp() {
     // check every pipeline stage(stall, flush)
-    if (pipeline.at(IF).isFlushed()) {
-        pipeline.at(IF) = InstPipelineData::nop;
-    }
     if (pipeline.at(ID).isStalled()) {
         pipeline.insert(pipeline.begin() + 2, InstPipelineData::nop);
         instUnstall();
@@ -288,9 +273,7 @@ void InstSimulator::instCleanUp() {
 }
 
 void InstSimulator::instSetDependency() {
-    printf("check ID %s\n", pipeline.at(ID).getInst().getInstName().c_str());
     instSetDependencyID();
-    printf("check EX %s\n", pipeline.at(EX).getInst().getInstName().c_str());
     instSetDependencyEX();
 }
 
@@ -304,7 +287,6 @@ void InstSimulator::instSetDependencyID() {
     }
     InstState action = checkIDDependency();
     if (action == InstState::STALL) {
-        printf("action = STALL\n");
         instStall();
         return;
     }
@@ -385,7 +367,7 @@ bool InstSimulator::instPredictBranch() {
                 result = (pipelineData.getValRs() != pipelineData.getValRt());
                 break;
             case 0x07u:
-                result = (pipelineData.getValRs() > 0u);
+                result = (toSigned(pipelineData.getValRs()) > 0);
                 break;
             default:
                 result = false;
@@ -590,8 +572,6 @@ bool InstSimulator::hasToStall(const unsigned& dependency, const std::vector<uns
     if (!dEX.empty() && !dDM.empty()) {
         return true;
     }
-    // if is branch instruction, only can get from EX/DM] stage
-    // if not branch instruction, only can get from [EX/DM stage
     if (isBranch(inst)) {
         return !dEX.empty();
     }
@@ -613,7 +593,6 @@ unsigned InstSimulator::getDependency(std::vector<unsigned>& dEX, std::vector<un
     const std::vector<InstElement>& idRead = pipeline.at(ID).getInst().getRegRead();
     unsigned stage = 0u;
     for (const auto& item : idRead) {
-        printf("check value %u\n", item.val);
         if (!exWrite.empty() && item.val && item.val == exWrite.at(0).val) {
             stage |= (1u << EX);
             dEX.push_back(item.val);
@@ -627,11 +606,9 @@ unsigned InstSimulator::getDependency(std::vector<unsigned>& dEX, std::vector<un
 }
 
 InstState InstSimulator::checkIDDependency() {
-    printf("check dependency for %s\n", pipeline.at(ID).getInst().getInstName().c_str());
     std::vector<unsigned> dEX;
     std::vector<unsigned> dDM;
     unsigned dependency = getDependency(dEX, dDM);
-    printf("dependency ex %u, dm %u\n", dependencySet(dependency, EX), dependencySet(dependency, DM));
     if (dependency == 0u) {
         return InstState::NONE;
     }
