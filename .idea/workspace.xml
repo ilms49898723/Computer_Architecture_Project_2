@@ -94,8 +94,8 @@
       <file leaf-file-name="main.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="620">
-              <caret line="20" column="43" selection-start-line="20" selection-start-column="43" selection-end-line="20" selection-end-column="43" />
+            <state relative-caret-position="651">
+              <caret line="21" column="26" selection-start-line="21" selection-start-column="26" selection-end-line="21" selection-end-column="26" />
               <folding />
             </state>
           </provider>
@@ -449,13 +449,6 @@
       <option name="presentableId" value="Default" />
       <updated>1461430925334</updated>
     </task>
-    <task id="LOCAL-00026" summary="add regwrite for jal">
-      <created>1461750007294</created>
-      <option name="number" value="00026" />
-      <option name="presentableId" value="LOCAL-00026" />
-      <option name="project" value="LOCAL" />
-      <updated>1461750007294</updated>
-    </task>
     <task id="LOCAL-00027" summary="rename enum class InstStage -&gt; InstState">
       <created>1461750038120</created>
       <option name="number" value="00027" />
@@ -792,7 +785,14 @@
       <option name="project" value="LOCAL" />
       <updated>1462031478302</updated>
     </task>
-    <option name="localTasksCounter" value="75" />
+    <task id="LOCAL-00075" summary="CLion">
+      <created>1462033481201</created>
+      <option name="number" value="00075" />
+      <option name="presentableId" value="LOCAL-00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1462033481201</updated>
+    </task>
+    <option name="localTasksCounter" value="76" />
     <servers />
   </component>
   <component name="TodoView">
@@ -842,7 +842,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="rename function" />
     <MESSAGE value="rewrite some functions, not tested" />
     <MESSAGE value="add setVal(), getVal()" />
     <MESSAGE value="change enum InstState" />
@@ -867,7 +866,8 @@
     <MESSAGE value="add else{}" />
     <MESSAGE value="add missing '\''" />
     <MESSAGE value="delete redundant codes" />
-    <option name="LAST_COMMIT_MESSAGE" value="delete redundant codes" />
+    <MESSAGE value="CLion" />
+    <option name="LAST_COMMIT_MESSAGE" value="CLion" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1274,8 +1274,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="620">
-          <caret line="20" column="43" selection-start-line="20" selection-start-column="43" selection-end-line="20" selection-end-column="43" />
+        <state relative-caret-position="651">
+          <caret line="21" column="26" selection-start-line="21" selection-start-column="26" selection-end-line="21" selection-end-column="26" />
           <folding />
         </state>
       </provider>

@@ -17,8 +17,8 @@ int main() {
     // constant string filenames
     const std::string iimageFilename = "iimage.bin";
     const std::string dimageFilename = "dimage.bin";
-    const std::string snapshotFilename = "ssnapshot.rpt";
-    const std::string errorDumpFilename = "eerror_dump.rpt";
+    const std::string snapshotFilename = "snapshot.rpt";
+    const std::string errorDumpFilename = "error_dump.rpt";
     // load iimage, dimage
     unsigned iLen, dLen;
     unsigned pc, sp;
