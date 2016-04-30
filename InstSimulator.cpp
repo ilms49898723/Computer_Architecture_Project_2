@@ -311,8 +311,20 @@ void InstSimulator::instSetDependencyID() {
                 }
             }
             else {
+                const InstPipelineData& wbData = pipeline.at(WB);
                 for (const auto& item : idRead) {
-                    pipelineData.setVal(memory.getRegister(item.val), item.type);
+                    if (!wbData.getInst().getRegWrite().empty() &&
+                        wbData.getInst().getRegWrite().at(0).val == item.val) {
+                        if (isMemoryLoad(wbData.getInst())) {
+                            pipelineData.setVal(wbData.getMDR(), item.type);
+                        }
+                        else {
+                            pipelineData.setVal(wbData.getALUOut(), item.type);
+                        }
+                    }
+                    else {
+                        pipelineData.setVal(memory.getRegister(item.val), item.type);
+                    }
                 }
             }
             bool result = instPredictBranch();
