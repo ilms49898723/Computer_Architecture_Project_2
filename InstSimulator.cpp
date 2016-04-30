@@ -70,7 +70,7 @@ void InstSimulator::simulate() {
     for (int i = 0; i < 5; ++i) {
         pipeline.push_back(InstPipelineData::nop);
     }
-    while (!isFinished() && pc < 1024u) {
+    while (!isFinished() && pc < 1024u && cycle <= 50000) {
         // wb
         instWB();
         // dm
@@ -177,9 +177,9 @@ void InstSimulator::instID() {
         }
         else {
             if (inst.getOpCode() == 0x03u) {
-                pipelineData.setALUOut(instALUJ());
+                pipelineData.setALUOut(pipelineData.getInstPc() + 4);
             }
-            pc = (pc & 0xF0000000u) | (pipelineData.getValC() * 4);
+            pc = ((pipelineData.getInstPc() + 4) & 0xF0000000u) | (pipelineData.getValC() * 4);
         }
     }
 }
@@ -217,31 +217,35 @@ void InstSimulator::instDM() {
         const unsigned& MDR = instMemLoad(ALUOut, inst);
         pipelineData.setMDR(MDR);
     }
+    else if (isMemoryStore(inst)) {
+        const unsigned& ALUOut = pipelineData.getALUOut();
+        InstAction action[2];
+        action[0] = detectMemAddrOverflow(ALUOut, inst);
+        action[1] = detectDataMisaligned(ALUOut, inst);
+        if (action[0] == InstAction::HALT || action[1] == InstAction::HALT) {
+            return;
+        }
+        unsigned val = memory.getRegister(inst.getRt());
+        instMemStore(ALUOut, val, inst);
+    }
 }
 
 void InstSimulator::instWB() {
     const InstPipelineData& pipelineData = pipeline.at(WB);
     const InstDataBin& inst = pipeline.at(WB).getInst();
-    if (isNOP(inst) || isHalt(inst)) {
+    if (isNOP(inst) || isHalt(inst) || isMemoryStore(inst)) {
         return;
     }
     if (inst.getRegWrite().empty()) {
         return;
     }
-    if (isMemoryStore(inst)) {
-        detectWriteRegZero(inst.getRt());
-        unsigned val = memory.getRegister(inst.getRt());
-        instMemStore(pipelineData.getALUOut(), val, inst);
+    const unsigned& targetAddress = inst.getRegWrite().at(0).val;
+    detectWriteRegZero(targetAddress);
+    if (isMemoryLoad(inst)) {
+        memory.setRegister(targetAddress, pipelineData.getMDR());
     }
     else {
-        const unsigned& targetAddress = inst.getRegWrite().at(0).val;
-        detectWriteRegZero(targetAddress);
-        if (isMemoryLoad(inst)) {
-            memory.setRegister(targetAddress, pipelineData.getMDR());
-        }
-        else {
-            memory.setRegister(targetAddress, pipelineData.getALUOut());
-        }
+        memory.setRegister(targetAddress, pipelineData.getALUOut());
     }
 }
 
@@ -395,7 +399,7 @@ unsigned InstSimulator::instALUR(const InstDataBin& inst) {
         case 0x28u: // nand
             return ~(valRs & valRt);
         case 0x2Au: // slt
-            return static_cast<unsigned>(valRs < valRt);
+            return static_cast<unsigned>(toSigned(valRs) < toSigned(valRt));
         case 0x00u: // sll
             return valRt << valC;
         case 0x02u: // srl
