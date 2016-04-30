@@ -22,7 +22,7 @@ public:
 
     InstPipelineData(const InstDataBin& inst);
 
-    InstPipelineData(const InstDataBin& inst, const unsigned& data);
+    InstPipelineData(const InstDataBin& inst, const unsigned& instPc);
 
     virtual ~InstPipelineData();
 

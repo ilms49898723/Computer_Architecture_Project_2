@@ -9,7 +9,7 @@
 
 namespace lb {
 
-const InstPipelineData InstPipelineData::nop = InstPipelineData(InstDecoder::decodeInstBin(0u), 0u);
+const InstPipelineData InstPipelineData::nop = InstPipelineData(InstDecoder::decodeInstBin(0u));
 
 InstPipelineData::InstPipelineData() {
     this->inst = InstDataBin();
@@ -37,10 +37,10 @@ InstPipelineData::InstPipelineData(const InstDataBin& inst) {
     this->flushed = false;
 }
 
-InstPipelineData::InstPipelineData(const InstDataBin& inst, const unsigned& data) {
+InstPipelineData::InstPipelineData(const InstDataBin& inst, const unsigned& instPc) {
     this->inst = inst;
-    this->instPc = 0u;
-    this->ALUOut = data;
+    this->instPc = instPc;
+    this->ALUOut = 0u;
     this->MDR = 0u;
     this->valRs = 0u;
     this->valRt = 0u;
