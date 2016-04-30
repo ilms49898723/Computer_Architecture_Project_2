@@ -30,7 +30,6 @@ private:
     const static unsigned EX;
     const static unsigned DM;
     const static unsigned WB;
-    const static unsigned STAGES;
 
 public:
     InstSimulator();
@@ -49,7 +48,6 @@ public:
 
 private:
     bool alive;
-    bool pcUpdated;
     unsigned pc;
     unsigned pcOriginal;
     unsigned cycle;

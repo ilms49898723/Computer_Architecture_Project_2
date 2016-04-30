@@ -168,7 +168,6 @@ void InstSimulator::instID() {
         return;
     }
     if (pipelineData.getBranchResult()) {
-        pcUpdated = true;
         if (isBranchR(inst)) {
             pc = pipelineData.getValRs();
         }
