@@ -22,7 +22,7 @@ namespace lb {
 
 class InstSimulator {
 private:
-    constexpr static int MAXN = 2048;
+    constexpr static int MAXN = 4096;
 
 private:
     const static unsigned IF;

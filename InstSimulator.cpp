@@ -60,7 +60,7 @@ void InstSimulator::setLogFile(FILE* snapshot, FILE* errorDump) {
 
 void InstSimulator::simulate() {
     if (!snapshot || !errorDump) {
-        fprintf(stderr, "Log File Setting is not correct.\n");
+        fprintf(stderr, "Can't open output files\n");
         return;
     }
     pc = pcOriginal;
@@ -70,24 +70,16 @@ void InstSimulator::simulate() {
     for (int i = 0; i < 5; ++i) {
         pipeline.push_back(InstPipelineData::nop);
     }
-    while (!isFinished() && pc < 1024u) {
-        // wb
+    while (!isFinished()) {
         instWB();
-        // dm
         instDM();
-        // ex
         instEX();
-        // id
         instID();
-        // if
         instIF();
-        // pop the last one(wb)
         instPop();
-        // check alive
         if (!alive) {
             break;
         }
-        // clear message buffer
         idForward.clear();
         exForward.clear();
         instSetDependency();
