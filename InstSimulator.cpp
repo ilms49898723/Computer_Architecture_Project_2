@@ -60,7 +60,7 @@ void InstSimulator::setLogFile(FILE* snapshot, FILE* errorDump) {
 
 void InstSimulator::simulate() {
     if (!snapshot || !errorDump) {
-        fprintf(stderr, "Can't open output files\n");
+        fprintf(stderr, "Can\'t open output files\n");
         return;
     }
     pc = pcOriginal;
