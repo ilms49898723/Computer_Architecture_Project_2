@@ -71,40 +71,47 @@ void InstSimulator::simulate() {
     for (int i = 0; i < 5; ++i) {
         pipeline.push_back(InstPipelineData::nop);
     }
-    while (!isFinished()) {
-        printf("cycle %d start, ", cycle);
+    while (!isFinished() && pc < 1024u) {
+        printf("cycle %d:\n", cycle);
+        printf("before pipeline %s %s %s %s %s, pc = %u\n",
+               pipeline.at(IF).getInst().getInstName().c_str(),
+               pipeline.at(ID).getInst().getInstName().c_str(),
+               pipeline.at(EX).getInst().getInstName().c_str(),
+               pipeline.at(DM).getInst().getInstName().c_str(),
+               pipeline.at(WB).getInst().getInstName().c_str(),
+               pc
+        );
         // reset pcUpdated flag
-        pcUpdated = pipeline.at(0).isStalled();
-        printf("pcUpdated = %d, pc = %x\n", pcUpdated, pc);
+        pcUpdated = false;
         // wb
         instWB();
-        printf("after wb %d, %x\n", pcUpdated, pc);
         // dm
         instDM();
-        printf("after dm %d, %x\n", pcUpdated, pc);
         // ex
         instEX();
-        printf("after ex %d, %x\n", pcUpdated, pc);
         // id
         instID();
-        printf("after id %d, %x\n", pcUpdated, pc);
         // if
         instIF();
-        printf("after if %d, %x\n", pcUpdated, pc);
         // pop the last one(wb)
         instPop();
-        // clean message buffer
+        // check alive
+        if (!alive) {
+            break;
+        }
+        // clear message buffer
         idForward.clear();
         exForward.clear();
         // deal with stall, flush
         instCleanUp();
         instSetDependency();
         dumpSnapshot(snapshot);
-        if (!pcUpdated) {
+        printf("after pc = %u, pcUpdated = %d, IF stalled = %d\n", pc, pcUpdated, pipeline.at(IF).isStalled());
+        if (!pcUpdated && !pipeline.at(IF).isStalled()) {
             pc += 4;
         }
-        printf("cycle %u end, pc = %u\n\n", cycle, pc);
         ++cycle;
+        printf("cycle end pc = %u\n\n", pc);
     }
 }
 
@@ -161,9 +168,6 @@ void InstSimulator::instIF() {
     if (!pipeline.at(IF).isStalled()) {
         pipeline.push_front(instList[pc >> 2]);
     }
-    else {
-        pcUpdated = true;
-    }
 }
 
 void InstSimulator::instID() {
@@ -173,13 +177,16 @@ void InstSimulator::instID() {
         return;
     }
     if (pipelineData.getBranchResult()) {
+        printf("pcUpdate change to true in ID\n");
         pcUpdated = true;
         if (isBranchR(inst)) {
             pc = pipelineData.getValRs();
         }
         else if (isBranchI(inst)) {
+            printf("branch %s taken, ", inst.getInstName().c_str());
             int newPc = toSigned(pc) + 4 + 4 * toSigned(pipelineData.getValC(), 16);
             pc = toUnsigned(newPc);
+            printf("newPc = %d\n", newPc);
         }
         else {
             if (inst.getOpCode() == 0x03u) {
@@ -196,13 +203,13 @@ void InstSimulator::instEX() {
     if (isNOP(inst) || isHalt(inst) || isBranch(inst)) {
         return;
     }
-    else if (inst.getInstType() == InstType::R && inst.getFunct() != 0x08u) {
-        // type-R, not jr
-        pipelineData.setALUOut(instALUR(inst.getFunct()));
+    if (inst.getInstType() == InstType::R) {
+        // type-R, not jr(isBranch)
+        pipelineData.setALUOut(instALUR(inst));
     }
-    else if (inst.getInstType() == InstType::I && inst.getOpCode() != 0x04u && inst.getOpCode() != 0x05u && inst.getOpCode() != 0x07u) {
-        // type-I, not beq, bne, bgtz
-        pipelineData.setALUOut(instALUI(inst.getOpCode()));
+    else if (inst.getInstType() == InstType::I) {
+        // type-I, not beq, bne, bgtz(isBranch)
+        pipelineData.setALUOut(instALUI(inst));
     }
     else {
         return;
@@ -212,9 +219,15 @@ void InstSimulator::instEX() {
 void InstSimulator::instDM() {
     InstPipelineData& pipelineData = pipeline.at(DM);
     const InstDataBin& inst = pipeline.at(DM).getInst();
-    if (isMemoryLoad(inst.getOpCode())) {
+    if (isMemoryLoad(inst)) {
         const unsigned& ALUOut = pipelineData.getALUOut();
-        const unsigned& MDR = instMemLoad(ALUOut, inst.getOpCode());
+        InstAction action[2];
+        action[0] = detectMemAddrOverflow(ALUOut, inst);
+        action[1] = detectDataMisaligned(ALUOut, inst);
+        if (action[0] == InstAction::HALT || action[1] == InstAction::HALT) {
+            return;
+        }
+        const unsigned& MDR = instMemLoad(ALUOut, inst);
         pipelineData.setMDR(MDR);
     }
 }
@@ -228,13 +241,15 @@ void InstSimulator::instWB() {
     if (inst.getRegWrite().empty()) {
         return;
     }
-    if (isMemoryStore(inst.getOpCode())) {
+    if (isMemoryStore(inst)) {
+        detectWriteRegZero(inst.getRt());
         unsigned val = memory.getRegister(inst.getRt());
-        instMemStore(pipelineData.getALUOut(), val, inst.getOpCode());
+        instMemStore(pipelineData.getALUOut(), val, inst);
     }
     else {
         const unsigned& targetAddress = inst.getRegWrite().at(0).val;
-        if (isMemoryLoad(inst.getOpCode())) {
+        detectWriteRegZero(targetAddress);
+        if (isMemoryLoad(inst)) {
             memory.setRegister(targetAddress, pipelineData.getMDR());
         }
         else {
@@ -273,7 +288,9 @@ void InstSimulator::instCleanUp() {
 }
 
 void InstSimulator::instSetDependency() {
+    printf("check ID %s\n", pipeline.at(ID).getInst().getInstName().c_str());
     instSetDependencyID();
+    printf("check EX %s\n", pipeline.at(EX).getInst().getInstName().c_str());
     instSetDependencyEX();
 }
 
@@ -286,33 +303,39 @@ void InstSimulator::instSetDependencyID() {
         return;
     }
     InstState action = checkIDDependency();
-    if (action == InstState::NONE) {
-        return;
-    }
-    else if (action == InstState::STALL) {
+    if (action == InstState::STALL) {
+        printf("action = STALL\n");
         instStall();
         return;
     }
     else{
         if (isBranch(inst)) {
-            for (const auto& item : idRead) {
-                if (!dmWrite.empty() && item.val && item.val == dmWrite.at(0).val) {
-                    pipelineData.setVal(pipeline.at(DM).getALUOut(), item.type);
-                    idForward.push_back(item);
-                }
-                else {
-                    const InstPipelineData& wbData = pipeline.at(WB);
-                    if (wbData.getInst().getRegWrite().at(0).val == item.val) {
-                        if (isMemoryLoad(wbData.getInst().getOpCode())) {
-                            pipelineData.setVal(wbData.getMDR(), item.type);
-                        }
-                        else {
-                            pipelineData.setVal(wbData.getALUOut(), item.type);
-                        }
+            if (action == InstState::FORWARD) {
+                for (const auto& item : idRead) {
+                    if (!dmWrite.empty() && item.val && item.val == dmWrite.at(0).val) {
+                        pipelineData.setVal(pipeline.at(DM).getALUOut(), item.type);
+                        idForward.push_back(item);
                     }
                     else {
-                        pipelineData.setVal(memory.getRegister(item.val), item.type);
+                        const InstPipelineData& wbData = pipeline.at(WB);
+                        if (!wbData.getInst().getRegWrite().empty() &&
+                            wbData.getInst().getRegWrite().at(0).val == item.val) {
+                            if (isMemoryLoad(wbData.getInst())) {
+                                pipelineData.setVal(wbData.getMDR(), item.type);
+                            }
+                            else {
+                                pipelineData.setVal(wbData.getALUOut(), item.type);
+                            }
+                        }
+                        else {
+                            pipelineData.setVal(memory.getRegister(item.val), item.type);
+                        }
                     }
+                }
+            }
+            else {
+                for (const auto& item : idRead) {
+                    pipelineData.setVal(memory.getRegister(item.val), item.type);
                 }
             }
             bool result = instPredictBranch();
@@ -375,11 +398,13 @@ bool InstSimulator::instPredictBranch() {
     }
 }
 
-unsigned InstSimulator::instALUR(const unsigned& funct) {
-    const unsigned& valRs = memory.getRegister(pipeline.at(EX).getInst().getRs());
-    const unsigned& valRt = memory.getRegister(pipeline.at(EX).getInst().getRt());
-    const unsigned& valC = pipeline.at(EX).getInst().getC();
-    switch (funct) {
+unsigned InstSimulator::instALUR(const InstDataBin& inst) {
+    const InstPipelineData& pipelineData = pipeline.at(EX);
+    const unsigned& valRs = pipelineData.getValRs();
+    const unsigned& valRt = pipelineData.getValRt();
+    const unsigned& valC = pipelineData.getValC();
+    detectNumberOverflow(toSigned(valRs), toSigned(valRt), inst);
+    switch (inst.getFunct()) {
         case 0x20u: // add
             return valRs + valRt;
         case 0x21u: // addu
@@ -409,10 +434,12 @@ unsigned InstSimulator::instALUR(const unsigned& funct) {
     }
 }
 
-unsigned InstSimulator::instALUI(const unsigned& opCode) {
-    const unsigned& valRs = memory.getRegister(pipeline.at(EX).getInst().getRs());
-    const unsigned& valC = pipeline.at(EX).getInst().getC();
-    switch (opCode) {
+unsigned InstSimulator::instALUI(const InstDataBin& inst) {
+    const InstPipelineData& pipelineData = pipeline.at(EX);
+    const unsigned& valRs = pipelineData.getValRs();
+    const unsigned& valC = pipelineData.getValC();
+    detectNumberOverflow(toSigned(valRs), toSigned(valC, 16), inst);
+    switch (inst.getOpCode()) {
         case 0x08u: // addi
             return toUnsigned(toSigned(valRs) + toSigned(valC, 16));
         case 0x09u: // addiu
@@ -445,8 +472,8 @@ unsigned InstSimulator::instALUJ() {
     return pc + 4;
 }
 
-unsigned InstSimulator::instMemLoad(const unsigned& addr, const unsigned& opCode) {
-    switch (opCode) {
+unsigned InstSimulator::instMemLoad(const unsigned& addr, const InstDataBin& inst) {
+    switch (inst.getOpCode()) {
         case 0x23u:
             return memory.getMemory(addr, InstSize::WORD);
         case 0x21u:
@@ -462,8 +489,8 @@ unsigned InstSimulator::instMemLoad(const unsigned& addr, const unsigned& opCode
     }
 }
 
-void InstSimulator::instMemStore(const unsigned& addr, const unsigned& val, const unsigned& opCode) {
-    switch (opCode) {
+void InstSimulator::instMemStore(const unsigned& addr, const unsigned& val, const InstDataBin& inst) {
+    switch (inst.getOpCode()) {
         case 0x2Bu:
             memory.setMemory(addr, val, InstSize::WORD);
             return;
@@ -498,8 +525,8 @@ bool InstSimulator::isFinished() {
            isHalt(pipeline.at(4).getInst());
 }
 
-bool InstSimulator::isMemoryLoad(const unsigned& opCode) {
-    switch (opCode) {
+bool InstSimulator::isMemoryLoad(const InstDataBin& inst) {
+    switch (inst.getOpCode()) {
         case 0x23u:
         case 0x21u:
         case 0x25u:
@@ -511,8 +538,8 @@ bool InstSimulator::isMemoryLoad(const unsigned& opCode) {
     }
 }
 
-bool InstSimulator::isMemoryStore(const unsigned& opCode) {
-    switch (opCode) {
+bool InstSimulator::isMemoryStore(const InstDataBin& inst) {
+    switch (inst.getOpCode()) {
         case 0x2Bu:
         case 0x29u:
         case 0x28u:
@@ -546,50 +573,70 @@ bool InstSimulator::isBranchJ(const InstDataBin& inst) {
     return inst.getOpCode() == 0x02u || inst.getOpCode() == 0x03u;
 }
 
-bool InstSimulator::hasToStall(const unsigned long long& dependency) {
+bool InstSimulator::hasToStall(const unsigned& dependency, const std::vector<unsigned>& dEX, const std::vector<unsigned>& dDM) {
     const InstDataBin& inst = pipeline.at(ID).getInst();
     // no dependency
-    if (dependency == STAGES) {
+    if (dependency == 0u) {
         return false;
     }
-    // lw or lh or lb. Because no MEM/WB to EX forwarding, always need stall
-    if (isMemoryLoad(inst.getOpCode())) {
+    // load memory -> stall
+    if (!dEX.empty() && isMemoryLoad(pipeline.at(EX).getInst())) {
+        return true;
+    }
+    if (!dDM.empty() && isMemoryLoad(pipeline.at(DM).getInst())) {
+        return true;
+    }
+    // depends on both ex, dm
+    if (!dEX.empty() && !dDM.empty()) {
         return true;
     }
     // if is branch instruction, only can get from EX/DM] stage
     // if not branch instruction, only can get from [EX/DM stage
     if (isBranch(inst)) {
-        return dependency < DM;
+        return !dEX.empty();
     }
     else {
-        return dependency != EX;
+        return !dDM.empty();
     }
 }
 
-unsigned long long InstSimulator::getDependency() {
-    // return STAGES: no dependency, EX: on ex, DM: on dm
+bool InstSimulator::dependencySet(const unsigned& dependency, const unsigned& stage) {
+    return (dependency & (1u << stage)) != 0u;
+}
+
+unsigned InstSimulator::getDependency(std::vector<unsigned>& dEX, std::vector<unsigned>& dDM) {
+    // return 0: no dependency,
+    // & (1u << EX) == 1: on ex
+    // & (1u << DM) == 1: on dm
     const std::vector<InstElement>& exWrite = pipeline.at(EX).getInst().getRegWrite();
     const std::vector<InstElement>& dmWrite = pipeline.at(DM).getInst().getRegWrite();
     const std::vector<InstElement>& idRead = pipeline.at(ID).getInst().getRegRead();
-    unsigned stage = STAGES;
+    unsigned stage = 0u;
     for (const auto& item : idRead) {
+        printf("check value %u\n", item.val);
         if (!exWrite.empty() && item.val && item.val == exWrite.at(0).val) {
-            stage = std::min(stage, EX);
+            stage |= (1u << EX);
+            dEX.push_back(item.val);
         }
-        if (!dmWrite.empty() && item.val && item.val == dmWrite.at(0).val) {
-            stage = std::min(stage, DM);
+        else if (!dmWrite.empty() && item.val && item.val == dmWrite.at(0).val) {
+            stage |= (1u << DM);
+            dDM.push_back(item.val);
         }
     }
     return stage;
 }
 
 InstState InstSimulator::checkIDDependency() {
-    unsigned long long dependency = getDependency();
-    if (dependency == STAGES) {
+    printf("check dependency for %s\n", pipeline.at(ID).getInst().getInstName().c_str());
+    std::vector<unsigned> dEX;
+    std::vector<unsigned> dDM;
+    unsigned dependency = getDependency(dEX, dDM);
+    printf("dependency ex %u, dm %u\n", dependencySet(dependency, EX), dependencySet(dependency, DM));
+    if (dependency == 0u) {
         return InstState::NONE;
     }
     else {
-        bool stall = hasToStall(dependency);
+        bool stall = hasToStall(dependency, dEX, dDM);
         if (stall) {
             return InstState::STALL;
         }
@@ -606,29 +653,111 @@ InstAction InstSimulator::detectWriteRegZero(const unsigned& addr) {
     return InstAction::CONTINUE;
 }
 
-InstAction InstSimulator::detectNumberOverflow(const int& a, const int& b, const InstOpType& op) {
-    if (InstErrorDetector::isOverflowed(a, b, op)) {
-        fprintf(errorDump, "In cycle %u: Number Overflow\n", cycle);
+InstAction InstSimulator::detectNumberOverflow(const int& a, const int& b, const InstDataBin& inst) {
+    if (inst.getInstType() == InstType::R) {
+        switch (inst.getFunct()) {
+            case 0x20u:
+                if (InstErrorDetector::isOverflowed(a, b, InstOpType::ADD)) {
+                    fprintf(errorDump, "In cycle %u: Number Overflow\n", cycle);
+                }
+                return InstAction::CONTINUE;
+            case 0x22u:
+                if (InstErrorDetector::isOverflowed(a, b, InstOpType::SUB)) {
+                    fprintf(errorDump, "In cycle %u: Number Overflow\n", cycle);
+                }
+                return InstAction::CONTINUE;
+            default:
+                return InstAction::CONTINUE;
+        }
     }
-    return InstAction::CONTINUE;
+    else if (inst.getInstType() == InstType::I) {
+        switch (inst.getOpCode()) {
+            case 0x08u:
+            case 0x23u:
+            case 0x21u:
+            case 0x25u:
+            case 0x20u:
+            case 0x24u:
+            case 0x2Bu:
+            case 0x29u:
+            case 0x28u:
+                if (InstErrorDetector::isOverflowed(a, b, InstOpType::ADD)) {
+                    fprintf(errorDump, "In cycle %u: Number Overflow\n", cycle);
+                }
+                return InstAction::CONTINUE;
+            default:
+                return InstAction::CONTINUE;
+        }
+    }
+    else {
+        return InstAction::CONTINUE;
+    }
 }
 
-InstAction InstSimulator::detectMemAddrOverflow(const unsigned& addr, const InstSize& type) {
-    if (!InstErrorDetector::isValidMemoryAddr(addr, type)) {
-        fprintf(errorDump, "In cycle %u: Address Overflow\n", cycle);
-        alive = false;
-        return InstAction::HALT;
+InstAction InstSimulator::detectMemAddrOverflow(const unsigned& addr, const InstDataBin& inst) {
+    switch (inst.getOpCode()) {
+        case 0x23u:
+        case 0x2Bu:
+            if (!InstErrorDetector::isValidMemoryAddr(addr, InstSize::WORD)) {
+                fprintf(errorDump, "In cycle %u: Address Overflow\n", cycle);
+                alive = false;
+                return InstAction::HALT;
+            }
+            return InstAction::CONTINUE;
+        case 0x21u:
+        case 0x25u:
+        case 0x29u:
+            if (!InstErrorDetector::isValidMemoryAddr(addr, InstSize::HALF)) {
+                fprintf(errorDump, "In cycle %u: Address Overflow\n", cycle);
+                alive = false;
+                return InstAction::HALT;
+            }
+            return InstAction::CONTINUE;
+        case 0x20u:
+        case 0x24u:
+        case 0x28u:
+            if (!InstErrorDetector::isValidMemoryAddr(addr, InstSize::BYTE)) {
+                fprintf(errorDump, "In cycle %u: Address Overflow\n", cycle);
+                alive = false;
+                return InstAction::HALT;
+            }
+            return InstAction::CONTINUE;
+        default:
+            return InstAction::CONTINUE;
     }
-    return InstAction::CONTINUE;
 }
 
-InstAction InstSimulator::detectDataMisaligned(const unsigned& addr, const InstSize& type) {
-    if (!InstErrorDetector::isAlignedAddr(addr, type)) {
-        fprintf(errorDump, "In cycle %u: Misalignment Error\n", cycle);
-        alive = false;
-        return InstAction::HALT;
+InstAction InstSimulator::detectDataMisaligned(const unsigned& addr, const InstDataBin& inst) {
+    switch (inst.getOpCode()) {
+        case 0x23u:
+        case 0x2Bu:
+            if (!InstErrorDetector::isAlignedAddr(addr, InstSize::WORD)) {
+                fprintf(errorDump, "In cycle %u: Misalignment Error\n", cycle);
+                alive = false;
+                return InstAction::HALT;
+            }
+            return InstAction::CONTINUE;
+        case 0x21u:
+        case 0x25u:
+        case 0x29u:
+            if (!InstErrorDetector::isAlignedAddr(addr, InstSize::HALF)) {
+                fprintf(errorDump, "In cycle %u: Misalignment Error\n", cycle);
+                alive = false;
+                return InstAction::HALT;
+            }
+            return InstAction::CONTINUE;
+        case 0x20u:
+        case 0x24u:
+        case 0x28u:
+            if (!InstErrorDetector::isAlignedAddr(addr, InstSize::BYTE)) {
+                fprintf(errorDump, "In cycle %u: Misalignment Error\n", cycle);
+                alive = false;
+                return InstAction::HALT;
+            }
+            return InstAction::CONTINUE;
+        default:
+            return InstAction::CONTINUE;
     }
-    return InstAction::CONTINUE;
 }
 
 } /* namespace lb */

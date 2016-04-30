@@ -96,15 +96,15 @@ private:
 
     bool instPredictBranch();
 
-    unsigned instALUR(const unsigned& funct);
+    unsigned instALUR(const InstDataBin& inst);
 
-    unsigned instALUI(const unsigned& opCode);
+    unsigned instALUI(const InstDataBin& inst);
 
     unsigned instALUJ();
 
-    unsigned instMemLoad(const unsigned& addr, const unsigned& opCode);
+    unsigned instMemLoad(const unsigned& addr, const InstDataBin& inst);
 
-    void instMemStore(const unsigned& addr, const unsigned& val, const unsigned& opCode);
+    void instMemStore(const unsigned& addr, const unsigned& val, const InstDataBin& inst);
 
     bool isNOP(const InstDataBin& inst);
 
@@ -112,9 +112,9 @@ private:
 
     bool isFinished();
 
-    bool isMemoryLoad(const unsigned& opCode);
+    bool isMemoryLoad(const InstDataBin& inst);
 
-    bool isMemoryStore(const unsigned& opCode);
+    bool isMemoryStore(const InstDataBin& inst);
 
     bool isBranch(const InstDataBin& inst);
 
@@ -124,19 +124,22 @@ private:
 
     bool isBranchJ(const InstDataBin& inst);
 
-    bool hasToStall(const unsigned long long& dependency);
+    bool hasToStall(const unsigned& dependency, const std::vector<unsigned>& dEX,
+                        const std::vector<unsigned>& dDM);
 
-    unsigned long long getDependency();
+    bool dependencySet(const unsigned& dependency, const unsigned& stage);
+
+    unsigned getDependency(std::vector<unsigned>& dEX, std::vector<unsigned>& dDM);
 
     InstState checkIDDependency();
 
     InstAction detectWriteRegZero(const unsigned& addr);
 
-    InstAction detectNumberOverflow(const int& a, const int& b, const InstOpType& op);
+    InstAction detectNumberOverflow(const int& a, const int& b, const InstDataBin& inst);
 
-    InstAction detectMemAddrOverflow(const unsigned& addr, const InstSize& type);
+    InstAction detectMemAddrOverflow(const unsigned& addr, const InstDataBin& inst);
 
-    InstAction detectDataMisaligned(const unsigned& addr, const InstSize& type);
+    InstAction detectDataMisaligned(const unsigned& addr, const InstDataBin& inst);
 };
 
 } /* namespace lb */
