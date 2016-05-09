@@ -290,6 +290,7 @@ void InstSimulator::instSetDependencyID() {
                 }
                 else {
                     if (!wbData.getInst().getRegWrite().empty() &&
+                        item.val &&
                         wbData.getInst().getRegWrite().at(0).val == item.val) {
                         if (isMemoryLoad(wbData.getInst())) {
                             pipelineData.setVal(wbData.getMDR(), item.type);
@@ -307,6 +308,7 @@ void InstSimulator::instSetDependencyID() {
         else {
             for (const auto& item : idRead) {
                 if (!wbData.getInst().getRegWrite().empty() &&
+                    item.val &&
                     wbData.getInst().getRegWrite().at(0).val == item.val) {
                     if (isMemoryLoad(wbData.getInst())) {
                         pipelineData.setVal(wbData.getMDR(), item.type);
