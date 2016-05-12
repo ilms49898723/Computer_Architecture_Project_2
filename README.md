@@ -6,4 +6,3 @@ An easy MIPS Simulator(school mini project)
 
 Pipeline
 
-not completed
